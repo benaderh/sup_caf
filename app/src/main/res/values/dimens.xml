@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="margin_small">8dp</dimen>
+    <dimen name="margin_medium">16dp</dimen>
+    <dimen name="margin_large">24dp</dimen>
+    <dimen name="card_elevation">2dp</dimen>
+    <dimen name="card_radius">8dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="text_title">18sp</dimen>
+    <dimen name="text_body">14sp</dimen>
+    <dimen name="text_caption">12sp</dimen>
+    <dimen name="text_amount">22sp</dimen>
+</resources>

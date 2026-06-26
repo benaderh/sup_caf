@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SupCaf</string>
+
+    <!-- Navigation -->
+    <string name="nav_dashboard">Tableau de bord</string>
+    <string name="nav_achats">Achats</string>
+    <string name="nav_ventes">Ventes</string>
+    <string name="nav_tiers">Tiers</string>
+    <string name="nav_articles">Articles</string>
+    <string name="nav_journal">Journal</string>
+
+    <!-- Dashboard -->
+    <string name="solde_caisse">Solde caisse</string>
+    <string name="dettes_fournisseurs">Dettes fournisseurs</string>
+    <string name="creances_clients">Créances clients</string>
+    <string name="ventes_du_jour">Ventes du jour</string>
+    <string name="achats_du_jour">Achats du jour</string>
+
+    <!-- Articles -->
+    <string name="article">Article</string>
+    <string name="code_barre">Code barre</string>
+    <string name="categorie">Catégorie</string>
+    <string name="prix_achat">Prix achat</string>
+    <string name="prix_vente">Prix vente</string>
+    <string name="stock">Stock</string>
+    <string name="unite_achat">Unité achat</string>
+    <string name="unite_vente">Unité vente</string>
+    <string name="coef">Coefficient</string>
+
+    <!-- Tiers -->
+    <string name="fournisseur">Fournisseur</string>
+    <string name="client">Client</string>
+    <string name="autres">Autres</string>
+    <string name="solde">Solde</string>
+    <string name="dette">Dette</string>
+    <string name="creance">Créance</string>
+
+    <!-- Opérations -->
+    <string name="achat">Achat</string>
+    <string name="vente">Vente</string>
+    <string name="versement">Versement fournisseur</string>
+    <string name="encaissement">Encaissement client</string>
+    <string name="montant">Montant</string>
+    <string name="remise">Remise</string>
+    <string name="net_payer">Net à payer</string>
+    <string name="encaisse">Encaissé</string>
+    <string name="decaisse">Décaissé</string>
+    <string name="reste">Reste</string>
+    <string name="comptant">Comptant</string>
+    <string name="libelle">Libellé</string>
+    <string name="date">Date</string>
+    <string name="quantite">Quantité</string>
+    <string name="prix_unitaire">Prix unitaire</string>
+    <string name="total">Total</string>
+    <string name="observation">Observation</string>
+
+    <!-- Actions -->
+    <string name="enregistrer">Enregistrer</string>
+    <string name="annuler">Annuler</string>
+    <string name="supprimer">Supprimer</string>
+    <string name="modifier">Modifier</string>
+    <string name="ajouter">Ajouter</string>
+    <string name="nouveau">Nouveau</string>
+    <string name="rechercher">Rechercher…</string>
+    <string name="scanner">Scanner code barre</string>
+    <string name="valider">Valider ligne</string>
+
+    <!-- Messages -->
+    <string name="confirm_supprimer">Supprimer cet enregistrement ?</string>
+    <string name="oui">Oui</string>
+    <string name="non">Non</string>
+    <string name="champ_obligatoire">Champ obligatoire</string>
+    <string name="article_existe_deja">Cet article existe déjà</string>
+    <string name="stock_insuffisant">Stock insuffisant</string>
+    <string name="enregistre">Enregistré avec succès</string>
+    <string name="erreur_saisie">Erreur de saisie</string>
+    <string name="aucun_article">Aucun article dans cette opération</string>
+    <string name="article_non_trouve">Article non trouvé — créer nouveau ?</string>
+</resources>
