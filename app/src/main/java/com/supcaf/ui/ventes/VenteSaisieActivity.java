@@ -35,6 +35,7 @@ public class VenteSaisieActivity extends AppCompatActivity {
     private List<JourneeDetail> lignes = new ArrayList<>();
     private LignesAdapter lignesAdapter;
     private List<Tiers> clients;
+    private Journee journeeExistante = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,14 +57,14 @@ public class VenteSaisieActivity extends AppCompatActivity {
 
         long jId = getIntent().getLongExtra("journee_id", -1);
         if (jId != -1) {
-            Journee j = journeeDao.parId(jId);
-            if (j != null) {
+            journeeExistante = journeeDao.parId(jId);
+            if (journeeExistante != null) {
                 lignes.addAll(journeeDao.listerDetails(jId));
-                etDate.setText(j.getDate());
-                etLibelle.setText(j.getLibelle() != null ? j.getLibelle() : "");
-                etRemise.setText(String.valueOf(j.getRemise()));
-                etEnc.setText(String.valueOf(j.getEnc()));
-                long idT = j.getIdTiers();
+                etDate.setText(journeeExistante.getDate());
+                etLibelle.setText(journeeExistante.getLibelle() != null ? journeeExistante.getLibelle() : "");
+                etRemise.setText(String.valueOf(journeeExistante.getRemise()));
+                etEnc.setText(String.valueOf(journeeExistante.getEnc()));
+                long idT = journeeExistante.getIdTiers();
                 for (int i = 0; i < clients.size(); i++)
                     if (clients.get(i).getId() == idT) { spinClient.setSelection(i); break; }
             }

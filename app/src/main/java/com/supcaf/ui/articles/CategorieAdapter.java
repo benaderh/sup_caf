@@ -40,7 +40,7 @@ public class CategorieAdapter extends RecyclerView.Adapter<CategorieAdapter.Cate
     @Override
     public void onBindViewHolder(@NonNull CategorieVH holder, int position) {
         Categorie c = categories.get(position);
-        holder.tvNom.setText(c.getCategorie());
+        holder.tvNom.setText(c.getCat());
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onClick(c);
         });

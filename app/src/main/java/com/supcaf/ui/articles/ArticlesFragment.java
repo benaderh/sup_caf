@@ -12,6 +12,8 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.*;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.supcaf.R;
+import com.supcaf.data.DatabaseHelper;
+import com.supcaf.data.dao.ArticleDao;
 import com.supcaf.data.dao.CategorieDao;
 import com.supcaf.data.models.Article;
 import com.supcaf.data.models.Categorie;
@@ -131,7 +133,7 @@ public class ArticlesFragment extends Fragment {
     // --- Catégories ---
     private void onCategorieLongClick(Categorie c) {
         new AlertDialog.Builder(requireContext())
-            .setTitle(c.getCategorie())
+            .setTitle(c.getCat())
             .setItems(new CharSequence[]{"Modifier", "Supprimer"}, (d, which) -> {
                 if (which == 0) dialogSaisieCategorie(c);
                 else {
@@ -148,7 +150,7 @@ public class ArticlesFragment extends Fragment {
 
     private void dialogSaisieCategorie(@Nullable Categorie c) {
         EditText et = new EditText(requireContext());
-        if (c != null) et.setText(c.getCategorie());
+        if (c != null) et.setText(c.getCat());
         new AlertDialog.Builder(requireContext())
             .setTitle(c == null ? "Nouvelle catégorie" : "Modifier catégorie")
             .setView(et)
