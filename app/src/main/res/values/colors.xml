@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#1565C0</color>
+    <color name="primary_dark">#0D47A1</color>
+    <color name="primary_light">#E3F2FD</color>
+    <color name="accent">#FF6F00</color>
+
+    <color name="achat_color">#2E7D32</color>
+    <color name="achat_light">#E8F5E9</color>
+    <color name="vente_color">#C62828</color>
+    <color name="vente_light">#FFEBEE</color>
+    <color name="versement_color">#1565C0</color>
+    <color name="versement_light">#E3F2FD</color>
+    <color name="encaissement_color">#F57F17</color>
+    <color name="encaissement_light">#FFFDE7</color>
+    <color name="autres_color">#6A1B9A</color>
+    <color name="autres_light">#F3E5F5</color>
+
+    <color name="fournisseur_color">#1B5E20</color>
+    <color name="client_color">#B71C1C</color>
+
+    <color name="dette_color">#B71C1C</color>
+    <color name="creance_color">#1B5E20</color>
+    <color name="caisse_color">#1565C0</color>
+
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="divider">#BDBDBD</color>
+    <color name="surface">#FAFAFA</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+</resources>
