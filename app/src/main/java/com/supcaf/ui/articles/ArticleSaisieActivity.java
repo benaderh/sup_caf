@@ -101,7 +101,12 @@ public class ArticleSaisieActivity extends AppCompatActivity {
                 Toast.makeText(this, "Scan annulé", Toast.LENGTH_SHORT).show();
             })
             .addOnFailureListener(e -> {
-                Toast.makeText(this, "Erreur scan : " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                String msg = e.getMessage();
+                if (msg != null && msg.contains("Waiting for the barcode UI")) {
+                    Toast.makeText(this, "Module de scan en cours de téléchargement (une seule fois), veuillez réessayer dans un instant...", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(this, "Erreur scan : " + msg, Toast.LENGTH_SHORT).show();
+                }
             });
     }
 
