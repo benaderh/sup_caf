@@ -8,6 +8,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanner;
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning;
 import com.supcaf.R;
 import com.supcaf.data.DatabaseHelper;
 import com.supcaf.data.dao.ArticleDao;
@@ -62,6 +64,11 @@ public class ArticleSaisieActivity extends AppCompatActivity {
             }
         }
 
+        TextInputLayout tilCodeBarre = findViewById(R.id.til_code_barre);
+        if (tilCodeBarre != null) {
+            tilCodeBarre.setEndIconOnClickListener(v -> lancerScannerCodeBarre());
+        }
+
         findViewById(R.id.btn_enregistrer).setOnClickListener(v -> enregistrer());
         findViewById(R.id.btn_annuler).setOnClickListener(v -> finish());
     }
@@ -78,6 +85,23 @@ public class ArticleSaisieActivity extends AppCompatActivity {
         etQs         = findViewById(R.id.et_qs);
         etObs        = findViewById(R.id.et_obs);
         spinCategorie = findViewById(R.id.spin_categorie);
+    }
+
+    private void lancerScannerCodeBarre() {
+        GmsBarcodeScanner scanner = GmsBarcodeScanning.getClient(this);
+        scanner.startScan()
+            .addOnSuccessListener(barcode -> {
+                String rawValue = barcode.getRawValue();
+                if (rawValue != null) {
+                    etCodeBarre.setText(rawValue);
+                }
+            })
+            .addOnCanceledListener(() -> {
+                Toast.makeText(this, "Scan annulé", Toast.LENGTH_SHORT).show();
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Erreur scan : " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
     }
 
     private void chargerCategories() {

@@ -12,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.*;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanner;
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning;
 import com.supcaf.R;
 import com.supcaf.data.DatabaseHelper;
 import com.supcaf.data.dao.*;
@@ -84,13 +86,18 @@ public class AchatSaisieActivity extends AppCompatActivity {
                 }
             });
         }
+        
+        com.google.android.material.textfield.TextInputLayout tilCodeBarre = findViewById(R.id.til_code_barre);
+        if (tilCodeBarre != null) {
+            tilCodeBarre.setEndIconOnClickListener(v -> lancerScannerCodeBarre());
+        }
 
-        etDec.addTextChangedListener(new android.text.TextWatcher() {
+        etRemise.addTextChangedListener(new android.text.TextWatcher() {
             public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
             public void onTextChanged(CharSequence s, int st, int b, int c) { recalculer(); }
             public void afterTextChanged(android.text.Editable s) {}
         });
-        etRemise.addTextChangedListener(new android.text.TextWatcher() {
+        etDec.addTextChangedListener(new android.text.TextWatcher() {
             public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
             public void onTextChanged(CharSequence s, int st, int b, int c) { recalculer(); }
             public void afterTextChanged(android.text.Editable s) {}
@@ -140,6 +147,24 @@ public class AchatSaisieActivity extends AppCompatActivity {
         tvNet         = findViewById(R.id.tv_net);
         tvReste       = findViewById(R.id.tv_reste);
         rvLignes      = findViewById(R.id.rv_lignes);
+    }
+    
+    private void lancerScannerCodeBarre() {
+        GmsBarcodeScanner scanner = GmsBarcodeScanning.getClient(this);
+        scanner.startScan()
+            .addOnSuccessListener(barcode -> {
+                String rawValue = barcode.getRawValue();
+                if (rawValue != null) {
+                    etCodeBarre.setText(rawValue);
+                    ajouterLigne();
+                }
+            })
+            .addOnCanceledListener(() -> {
+                Toast.makeText(this, "Scan annulé", Toast.LENGTH_SHORT).show();
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Erreur scan : " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
     }
 
     private void chargerFournisseurs() {
