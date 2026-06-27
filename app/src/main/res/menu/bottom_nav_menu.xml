@@ -1,34 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <item
-        android:id="@+id/nav_dashboard"
-        android:icon="@android:drawable/ic_menu_today"
-        android:title="@string/nav_dashboard" />
-
-    <item
-        android:id="@+id/nav_achats"
-        android:icon="@android:drawable/ic_menu_add"
-        android:title="@string/nav_achats" />
-
-    <item
-        android:id="@+id/nav_ventes"
-        android:icon="@android:drawable/ic_menu_send"
-        android:title="@string/nav_ventes" />
-
-    <item
-        android:id="@+id/nav_tiers"
-        android:icon="@android:drawable/ic_menu_myplaces"
-        android:title="@string/nav_tiers" />
-
-    <item
-        android:id="@+id/nav_articles"
-        android:icon="@android:drawable/ic_menu_agenda"
-        android:title="@string/nav_articles" />
-
-    <item
-        android:id="@+id/nav_journal"
-        android:icon="@android:drawable/ic_menu_sort_by_size"
-        android:title="@string/nav_journal" />
-
+    <item android:id="@+id/nav_dashboard" android:icon="@android:drawable/ic_menu_today"    android:title="@string/nav_dashboard" />
+    <item android:id="@+id/nav_achats"    android:icon="@android:drawable/ic_menu_add"      android:title="@string/nav_achats" />
+    <item android:id="@+id/nav_ventes"    android:icon="@android:drawable/ic_menu_send"     android:title="@string/nav_ventes" />
+    <item android:id="@+id/nav_tiers"     android:icon="@android:drawable/ic_menu_myplaces" android:title="@string/nav_tiers" />
+    <item android:id="@+id/nav_articles"  android:icon="@android:drawable/ic_menu_agenda"   android:title="@string/nav_articles" />
 </menu>

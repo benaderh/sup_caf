@@ -137,11 +137,11 @@ public class TiersFragment extends Fragment {
             double s = t.getSolde();
             if ("F".equals(t.getType())) {
                 h.tvSolde.setText(s > 0 ? "Dette: " + FormatUtils.montant(s) : "Soldé");
-                h.tvSolde.setTextColor(h.itemView.getContext().getColor(
+                h.tvSolde.setTextColor(ContextCompat.getColor(h.itemView.getContext(), 
                     s > 0 ? R.color.dette_color : R.color.achat_color));
             } else if ("C".equals(t.getType())) {
                 h.tvSolde.setText(s > 0 ? "Créance: " + FormatUtils.montant(s) : "Soldé");
-                h.tvSolde.setTextColor(h.itemView.getContext().getColor(
+                h.tvSolde.setTextColor(ContextCompat.getColor(h.itemView.getContext(), 
                     s > 0 ? R.color.creance_color : R.color.achat_color));
             } else {
                 h.tvSolde.setText("");

@@ -258,5 +258,14 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- Bouton Journal -->
+        <Button
+            android:id="@+id/btn_journal"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="📒  Journal de caisse"
+            android:layout_marginTop="12dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
     </LinearLayout>
 </ScrollView>

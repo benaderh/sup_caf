@@ -1,7 +1,6 @@
 package com.supcaf.ui.tiers;
 
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import androidx.core.content.ContextCompat;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.*;
@@ -84,7 +83,7 @@ public class TiersDetailActivity extends AppCompatActivity {
             h.tvNet.setText("Net: " + FormatUtils.montant(j.getNet()));
             double reste = j.getReste();
             h.tvReste.setText(reste > 0 ? "Reste: " + FormatUtils.montant(reste) : "Réglé");
-            h.tvReste.setTextColor(h.itemView.getContext().getColor(
+            h.tvReste.setTextColor(ContextCompat.getColor(h.itemView.getContext(), 
                 reste > 0 ? R.color.dette_color : R.color.achat_color));
         }
 

@@ -108,7 +108,7 @@ public class ArticlesFragment extends Fragment {
             h.tvPv.setText("PV: " + FormatUtils.montant(a.getPv()) + " / " + a.getUv());
             h.tvStock.setText("Stock: " + FormatUtils.quantite(a.getQs()) + " " + a.getUv());
             h.tvCat.setText(a.getNomCategorie() != null ? a.getNomCategorie() : "");
-            h.tvStock.setTextColor(h.itemView.getContext().getColor(
+            h.tvStock.setTextColor(ContextCompat.getColor(h.itemView.getContext(), 
                 a.getQs() <= 0 ? R.color.dette_color : R.color.text_secondary));
             h.itemView.setOnClickListener(v -> onClick.on(a));
             h.itemView.setOnLongClickListener(v -> { onLongClick.on(a); return true; });

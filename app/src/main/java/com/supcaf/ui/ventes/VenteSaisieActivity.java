@@ -1,6 +1,7 @@
 package com.supcaf.ui.ventes;
 
 import android.content.Intent;
+import androidx.core.content.ContextCompat;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -163,7 +164,7 @@ public class VenteSaisieActivity extends AppCompatActivity {
         tvTotal.setText("Total: " + FormatUtils.montant(total));
         tvNet.setText("Net: " + FormatUtils.montant(net));
         tvReste.setText(reste > 0 ? "Créance: " + FormatUtils.montant(reste) : "Encaissé");
-        tvReste.setTextColor(getColor(reste > 0 ? R.color.creance_color : R.color.vente_color));
+        tvReste.setTextColor(ContextCompat.getColor(this, reste > 0 ? R.color.creance_color : R.color.vente_color));
     }
 
     private void enregistrer() {
