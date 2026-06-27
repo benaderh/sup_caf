@@ -69,5 +69,9 @@ public class Article {
     public double getValeurStock() { return qs * pa; }
 
     @Override
-    public String toString() { return art != null ? art : ""; }
+    public String toString() {
+        String code = art != null ? art : "";
+        String libelle = article != null ? article.trim() : "";
+        return libelle.isEmpty() ? code : code + " - " + libelle;
+    }
 }

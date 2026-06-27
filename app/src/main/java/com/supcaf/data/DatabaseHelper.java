@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     public static final String DB_NAME = "datah.db";
-    public static final int DB_VERSION = 1;
+    public static final int DB_VERSION = 2;
 
     // ── Tables ──────────────────────────────────────────────
     public static final String T_CATEGORIE      = "categorie";
@@ -162,30 +162,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private void insertDonneesInitiales(SQLiteDatabase db) {
-        // Catégories par défaut
-        String[] categories = {"Boissons", "Alimentation", "Épicerie", "Hygiène",
-                "Entretien", "Tabac", "Divers"};
-        for (String cat : categories) {
-            ContentValues cv = new ContentValues();
-            cv.put(CAT_CAT, cat);
-            db.insert(T_CATEGORIE, null, cv);
-        }
-
         // Tiers par défaut (ids 1 et 2 réservés)
         ContentValues fourn = new ContentValues();
-        fourn.put(TRS_TIER, "Comptant Fournisseur");
+        fourn.put(TRS_TIER, "Comptant/F");
         fourn.put(TRS_TYPE, TIERS_FOURNISSEUR);
         fourn.put(TRS_OBS, "Fournisseur par défaut — achats comptant");
         db.insert(T_TIERS, null, fourn);
 
         ContentValues client = new ContentValues();
-        client.put(TRS_TIER, "Comptant Client");
+        client.put(TRS_TIER, "Comptant/C");
         client.put(TRS_TYPE, TIERS_CLIENT);
         client.put(TRS_OBS, "Client par défaut — ventes comptant");
         db.insert(T_TIERS, null, client);
 
         ContentValues autres = new ContentValues();
-        autres.put(TRS_TIER, "Autres Comptant");
+        autres.put(TRS_TIER, "Comptant/A");
         autres.put(TRS_TYPE, TIERS_AUTRES);
         autres.put(TRS_OBS, "Tiers par défaut — autres opérations");
         db.insert(T_TIERS, null, autres);
@@ -193,7 +184,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Migration future ici
+        if (oldVersion < 2) {
+            // Depuis v2, les categories ne sont plus alimentees par defaut.
+        }
     }
 
     @Override
@@ -206,12 +199,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private void verifierTiersParDefaut(SQLiteDatabase db) {
+        // Mettre à jour les anciens noms si existants
+        db.execSQL("UPDATE " + T_TIERS + " SET " + TRS_TIER + " = 'Comptant/F' WHERE " + TRS_ID + " = 1 AND " + TRS_TIER + " = 'Comptant Fournisseur'");
+        db.execSQL("UPDATE " + T_TIERS + " SET " + TRS_TIER + " = 'Comptant/C' WHERE " + TRS_ID + " = 2 AND " + TRS_TIER + " = 'Comptant Client'");
+        db.execSQL("UPDATE " + T_TIERS + " SET " + TRS_TIER + " = 'Comptant/A' WHERE " + TRS_ID + " = 3 AND " + TRS_TIER + " = 'Autres Comptant'");
+
         // Tiers 1
         try (android.database.Cursor c = db.rawQuery("SELECT 1 FROM " + T_TIERS + " WHERE " + TRS_ID + " = 1", null)) {
             if (!c.moveToFirst()) {
                 ContentValues fourn = new ContentValues();
                 fourn.put(TRS_ID, 1);
-                fourn.put(TRS_TIER, "Comptant Fournisseur");
+                fourn.put(TRS_TIER, "Comptant/F");
                 fourn.put(TRS_TYPE, TIERS_FOURNISSEUR);
                 fourn.put(TRS_OBS, "Fournisseur par défaut — achats comptant");
                 db.insert(T_TIERS, null, fourn);
@@ -222,7 +220,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             if (!c.moveToFirst()) {
                 ContentValues client = new ContentValues();
                 client.put(TRS_ID, 2);
-                client.put(TRS_TIER, "Comptant Client");
+                client.put(TRS_TIER, "Comptant/C");
                 client.put(TRS_TYPE, TIERS_CLIENT);
                 client.put(TRS_OBS, "Client par défaut — ventes comptant");
                 db.insert(T_TIERS, null, client);
@@ -233,7 +231,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             if (!c.moveToFirst()) {
                 ContentValues autres = new ContentValues();
                 autres.put(TRS_ID, 3);
-                autres.put(TRS_TIER, "Autres Comptant");
+                autres.put(TRS_TIER, "Comptant/A");
                 autres.put(TRS_TYPE, TIERS_AUTRES);
                 autres.put(TRS_OBS, "Tiers par défaut — autres opérations");
                 db.insert(T_TIERS, null, autres);

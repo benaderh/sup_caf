@@ -33,7 +33,7 @@ public class CategorieAdapter extends RecyclerView.Adapter<CategorieAdapter.Cate
     @NonNull
     @Override
     public CategorieVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(android.R.layout.simple_list_item_1, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_article, parent, false);
         return new CategorieVH(v);
     }
 
@@ -41,8 +41,14 @@ public class CategorieAdapter extends RecyclerView.Adapter<CategorieAdapter.Cate
     public void onBindViewHolder(@NonNull CategorieVH holder, int position) {
         Categorie c = categories.get(position);
         holder.tvNom.setText(c.getCat());
+        holder.tvObs.setText(c.getObs() != null ? c.getObs() : "");
+        final long[] lastClickTime = {0};
         holder.itemView.setOnClickListener(v -> {
-            if (listener != null) listener.onClick(c);
+            long clickTime = System.currentTimeMillis();
+            if (clickTime - lastClickTime[0] < 300) {
+                if (listener != null) listener.onClick(c);
+            }
+            lastClickTime[0] = clickTime;
         });
         holder.itemView.setOnLongClickListener(v -> {
             if (listener != null) listener.onLongClick(c);
@@ -56,10 +62,15 @@ public class CategorieAdapter extends RecyclerView.Adapter<CategorieAdapter.Cate
     }
 
     static class CategorieVH extends RecyclerView.ViewHolder {
-        TextView tvNom;
+        TextView tvNom, tvObs;
         CategorieVH(View v) {
             super(v);
-            tvNom = v.findViewById(android.R.id.text1);
+            tvNom = v.findViewById(R.id.tv_art);
+            tvObs = v.findViewById(R.id.tv_cat);
+            TextView tvPv = v.findViewById(R.id.tv_pv);
+            TextView tvStock = v.findViewById(R.id.tv_stock);
+            tvPv.setText("");
+            tvStock.setText("");
         }
     }
 }

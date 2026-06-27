@@ -29,8 +29,9 @@ public class AchatSaisieActivity extends AppCompatActivity {
     private JourneeDao journeeDao;
     private ArticleDao articleDao;
     private TiersDao   tiersDao;
+    private CategorieDao categorieDao;
 
-    private TextInputEditText etDate, etHeure, etCodeBarre, etQte, etPrix, etRemise, etDec, etReste, etLibelle;
+    private TextInputEditText etDate, etHeure, etCodeBarre, etQte, etPrix, etRemise, etDec, etReste;
     private AutoCompleteTextView etArt;
     private Spinner spinFournisseur, spinCategorieDetail;
     private TextView tvTotal, tvNet;
@@ -39,12 +40,14 @@ public class AchatSaisieActivity extends AppCompatActivity {
     private List<JourneeDetail> lignes = new ArrayList<>();
     private LignesAdapter lignesAdapter;
     private List<Tiers> fournisseurs;
+    private List<Categorie> categories;
     private Journee journeeExistante = null;
+    private int currentEditingLineIndex = -1;
 
     private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(new ScanContract(), result -> {
         if(result.getContents() != null) {
             etCodeBarre.setText(result.getContents());
-            ajouterLigne();
+            selectionnerArticleParCodeBarre();
         } else {
             Toast.makeText(this, "Scan annulé", Toast.LENGTH_SHORT).show();
         }
@@ -64,9 +67,11 @@ public class AchatSaisieActivity extends AppCompatActivity {
         journeeDao = new JourneeDao(DatabaseHelper.getInstance(this));
         articleDao = new ArticleDao(DatabaseHelper.getInstance(this));
         tiersDao   = new TiersDao(DatabaseHelper.getInstance(this));
+        categorieDao = new CategorieDao(DatabaseHelper.getInstance(this));
 
         lierVues();
         chargerFournisseurs();
+        chargerCategoriesDetail();
 
         long jId = getIntent().getLongExtra("journee_id", -1);
         if (jId != -1) {
@@ -88,24 +93,7 @@ public class AchatSaisieActivity extends AppCompatActivity {
         chargerArticlesAutocomplete();
         recalculer();
 
-        // Recherche article par code barre ou libellé
-        findViewById(R.id.btn_ajouter_ligne).setOnClickListener(v -> ajouterLigne());
-        etCodeBarre.setOnEditorActionListener((tv, actionId, event) -> { ajouterLigne(); return true; });
-        
-        com.google.android.material.switchmaterial.SwitchMaterial switchScan = findViewById(R.id.switch_scan);
-        if (switchScan != null) {
-            switchScan.setOnCheckedChangeListener((btn, isChecked) -> {
-                if (isChecked) {
-                    etCodeBarre.requestFocus();
-                    Toast.makeText(this, "Mode Scan activé", Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
-        
-        com.google.android.material.textfield.TextInputLayout tilCodeBarre = findViewById(R.id.til_code_barre);
-        if (tilCodeBarre != null) {
-            tilCodeBarre.setEndIconOnClickListener(v -> lancerScannerCodeBarre());
-        }
+        etCodeBarre.setOnEditorActionListener((tv, actionId, event) -> { selectionnerArticleParCodeBarre(); return true; });
 
         etRemise.addTextChangedListener(new android.text.TextWatcher() {
             public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
@@ -113,6 +101,11 @@ public class AchatSaisieActivity extends AppCompatActivity {
             public void afterTextChanged(android.text.Editable s) {}
         });
         etDec.addTextChangedListener(new android.text.TextWatcher() {
+            public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
+            public void onTextChanged(CharSequence s, int st, int b, int c) { recalculer(); }
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+        etReste.addTextChangedListener(new android.text.TextWatcher() {
             public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
             public void onTextChanged(CharSequence s, int st, int b, int c) { recalculer(); }
             public void afterTextChanged(android.text.Editable s) {}
@@ -158,15 +151,22 @@ public class AchatSaisieActivity extends AppCompatActivity {
         etRemise      = findViewById(R.id.et_remise);
         etDec         = findViewById(R.id.et_dec);
         etReste       = findViewById(R.id.et_reste);
-        etLibelle     = findViewById(R.id.et_libelle);
         spinFournisseur = findViewById(R.id.spin_fournisseur);
         spinCategorieDetail = findViewById(R.id.spin_categorie_detail);
         tvTotal       = findViewById(R.id.tv_total);
         tvNet         = findViewById(R.id.tv_net);
         rvLignes      = findViewById(R.id.rv_lignes);
 
-        etDate.setOnClickListener(v -> showDatePicker());
-        etHeure.setOnClickListener(v -> showTimePicker());
+        installerSelectionFocus(etRemise, etDec, etReste);
+
+        etQte.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) etQte.selectAll();
+            else updateCurrentLine();
+        });
+        etPrix.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) etPrix.selectAll();
+            else updateCurrentLine();
+        });
     }
     
     private void showDatePicker() {
@@ -184,16 +184,33 @@ public class AchatSaisieActivity extends AppCompatActivity {
     }
 
     private void chargerArticlesAutocomplete() {
-        List<Article> articles = articleDao.listerTous();
+        List<Article> articles = articleDao.listerParCategorie(idCategorieSelectionnee());
         ArrayAdapter<Article> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, articles);
         etArt.setAdapter(adapter);
         etArt.setOnItemClickListener((parent, view, position, id) -> {
             Article a = (Article) parent.getItemAtPosition(position);
-            etCodeBarre.setText(a.getCodeBarre() != null ? a.getCodeBarre() : "");
-            etArt.setText(a.getArt());
-            etPrix.setText(String.valueOf(a.getPa()));
-            etQte.requestFocus();
+            ajouterArticleALaListe(a);
         });
+    }
+
+    private void chargerCategoriesDetail() {
+        categories = categorieDao.listerToutes();
+        String[] noms = new String[categories.size() + 1];
+        noms[0] = "Toutes categories";
+        for (int i = 0; i < categories.size(); i++) noms[i + 1] = categories.get(i).getCat();
+        spinCategorieDetail.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, noms));
+        spinCategorieDetail.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> p, View v, int pos, long id) { chargerArticlesAutocomplete(); }
+            public void onNothingSelected(AdapterView<?> p) {}
+        });
+    }
+
+    private long idCategorieSelectionnee() {
+        int pos = spinCategorieDetail.getSelectedItemPosition();
+        return pos > 0 && categories != null && pos - 1 < categories.size()
+                ? categories.get(pos - 1).getId()
+                : 0;
     }
     
     private void lancerScannerCodeBarre() {
@@ -214,7 +231,7 @@ public class AchatSaisieActivity extends AppCompatActivity {
         int defaultPos = 0;
         for (int i = 0; i < fournisseurs.size(); i++) {
             noms[i] = fournisseurs.get(i).getTier();
-            if (noms[i].equalsIgnoreCase("Comptant")) defaultPos = i;
+            if (estComptant(fournisseurs.get(i), DatabaseHelper.FOURN_COMPTANT_ID)) defaultPos = i;
         }
         spinFournisseur.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, noms));
@@ -238,7 +255,6 @@ public class AchatSaisieActivity extends AppCompatActivity {
                 etHeure.setText("");
             }
         }
-        etLibelle.setText(journeeExistante.getLibelle() != null ? journeeExistante.getLibelle() : "");
         etRemise.setText(String.valueOf(journeeExistante.getRemise()));
         etDec.setText(String.valueOf(journeeExistante.getDec()));
         long idT = journeeExistante.getIdTiers();
@@ -247,69 +263,85 @@ public class AchatSaisieActivity extends AppCompatActivity {
         }
     }
 
-    private void ajouterLigne() {
-        String code = etCodeBarre.getText() != null ? etCodeBarre.getText().toString().trim() : "";
-        String art  = etArt.getText()       != null ? etArt.getText().toString().trim()       : "";
-
-        Article article = null;
-        if (!code.isEmpty()) article = articleDao.parCodeBarre(code);
-        if (article == null && !art.isEmpty()) article = articleDao.parArt(art);
-
-        if (article == null) {
-            // Proposer de créer l'article
-            String ref = !code.isEmpty() ? code : art;
-            new AlertDialog.Builder(this)
-                .setMessage(getString(R.string.article_non_trouve) + "\n« " + ref + " »")
-                .setPositiveButton("Créer", (d, w) -> {
-                    Intent intent = new Intent(this, ArticleSaisieActivity.class);
-                    if (!code.isEmpty()) intent.putExtra("code_barre", code);
-                    if (!art.isEmpty())  intent.putExtra("art", art);
-                    startActivity(intent);
-                })
-                .setNegativeButton(R.string.non, null).show();
-            return;
-        }
-
-        double qte  = FormatUtils.parseDouble(etQte.getText() != null ? etQte.getText().toString() : "1");
-        double prix = FormatUtils.parseDouble(etPrix.getText() != null ? etPrix.getText().toString() : "");
-        if (qte <= 0) qte = 1;
-        if (prix <= 0) prix = article.getPa(); // prix achat par défaut
+    private void ajouterArticleALaListe(Article article) {
+        double qte = 1;
+        double prix = article.getPa();
+        if (prix <= 0) prix = 0;
 
         JourneeDetail ligne = new JourneeDetail(article.getId(), article.getArt(), qte, prix, article.getUa());
         lignes.add(ligne);
-        lignesAdapter.notifyItemInserted(lignes.size() - 1);
+        currentEditingLineIndex = lignes.size() - 1;
+        lignesAdapter.notifyItemInserted(currentEditingLineIndex);
 
-        // Réinitialiser champs article
-        etCodeBarre.setText("");
-        etArt.setText("");
+        etCodeBarre.setText(article.getCodeBarre() != null ? article.getCodeBarre() : "");
+        etArt.setText(article.getArt(), false);
         etQte.setText("1");
-        etPrix.setText("");
+        etPrix.setText(FormatUtils.montantSansDevise(prix));
         
-        com.google.android.material.switchmaterial.SwitchMaterial switchScan = findViewById(R.id.switch_scan);
-        if (switchScan != null && switchScan.isChecked()) {
-            etCodeBarre.requestFocus();
-        }
-        
+        etQte.requestFocus();
         recalculer();
     }
 
     private void supprimerLigne(int pos) {
         lignes.remove(pos);
         lignesAdapter.notifyItemRemoved(pos);
+        if (currentEditingLineIndex == pos) {
+            currentEditingLineIndex = -1;
+            etCodeBarre.setText("");
+            etArt.setText("", false);
+            etQte.setText("1");
+            etPrix.setText("");
+        } else if (currentEditingLineIndex > pos) {
+            currentEditingLineIndex--;
+        }
         recalculer();
     }
 
     private void modifierLigne(int pos) {
+        currentEditingLineIndex = pos;
         JourneeDetail d = lignes.get(pos);
-        etCodeBarre.setText(d.getNomArticle());
-        etArt.setText(d.getNomArticle());
-        etQte.setText(String.valueOf(d.getQuantite()));
-        etPrix.setText(String.valueOf(d.getPrix()));
-        supprimerLigne(pos);
-        Toast.makeText(this, "Ligne prête à être modifiée en haut", Toast.LENGTH_SHORT).show();
+        Article a = articleDao.parId(d.getIdArticle());
+        if (a != null && a.getCodeBarre() != null) etCodeBarre.setText(a.getCodeBarre());
+        else etCodeBarre.setText("");
+        etArt.setText(d.getNomArticle(), false);
+        etQte.setText(FormatUtils.montantSansDevise(d.getQuantite()));
+        etPrix.setText(FormatUtils.montantSansDevise(d.getPrix()));
+        etQte.requestFocus();
+    }
+
+    private void updateCurrentLine() {
+        if (currentEditingLineIndex != -1 && currentEditingLineIndex < lignes.size()) {
+            double qte  = FormatUtils.parseDouble(etQte.getText() != null ? etQte.getText().toString() : "1");
+            double prix = FormatUtils.parseDouble(etPrix.getText() != null ? etPrix.getText().toString() : "0");
+            JourneeDetail d = lignes.get(currentEditingLineIndex);
+            if (d.getQuantite() != qte || d.getPrix() != prix) {
+                d.setQuantite(qte);
+                d.setPrix(prix);
+                lignesAdapter.notifyItemChanged(currentEditingLineIndex);
+                recalculer();
+            }
+        }
     }
 
     private boolean isRecalculating = false;
+
+    private void selectionnerArticleParCodeBarre() {
+        String code = etCodeBarre.getText() != null ? etCodeBarre.getText().toString().trim() : "";
+        if (code.isEmpty()) return;
+        Article article = articleDao.parCodeBarre(code);
+        if (article == null) {
+            Intent intent = new Intent(this, ArticleSaisieActivity.class);
+            new AlertDialog.Builder(this)
+                .setMessage(getString(R.string.article_non_trouve) + "\n\"" + code + "\"")
+                .setPositiveButton("Creer", (d, w) -> {
+                    intent.putExtra("code_barre", code);
+                    startActivity(intent);
+                })
+                .setNegativeButton(R.string.non, null).show();
+            return;
+        }
+        ajouterArticleALaListe(article);
+    }
 
     private void recalculer() {
         if (isRecalculating) return;
@@ -321,7 +353,7 @@ public class AchatSaisieActivity extends AppCompatActivity {
             boolean isComptant = false;
             int pos = spinFournisseur.getSelectedItemPosition();
             if (pos >= 0 && pos < fournisseurs.size()) {
-                if (fournisseurs.get(pos).getTier().equalsIgnoreCase("Comptant")) isComptant = true;
+                isComptant = estComptant(fournisseurs.get(pos), DatabaseHelper.FOURN_COMPTANT_ID);
             }
 
             double remise = FormatUtils.parseDouble(etRemise.getText() != null ? etRemise.getText().toString() : "0");
@@ -331,21 +363,32 @@ public class AchatSaisieActivity extends AppCompatActivity {
                 // Reste = 0 toujours. Remise = Total - Dec (si Dec > 0)
                 findViewById(R.id.layout_reste).setVisibility(View.GONE);
                 etReste.setText("0");
+                remise = Math.max(0, total - dec);
+                etRemise.setText(FormatUtils.montantSansDevise(remise));
             } else {
                 findViewById(R.id.layout_reste).setVisibility(View.VISIBLE);
-                double reste = total - remise - dec;
+                double reste = FormatUtils.parseDouble(etReste.getText() != null ? etReste.getText().toString() : "0");
                 // Si le Reste a été modifié manuellement, on pourrait recalculer Dec.
                 // Pour faire simple, on affiche juste le résultat du calcul.
-                etReste.setText(FormatUtils.montantSansDevise(reste));
+                if (etReste.hasFocus()) {
+                    remise = Math.max(0, total - dec - reste);
+                    etRemise.setText(FormatUtils.montantSansDevise(remise));
+                } else {
+                    reste = Math.max(0, total - remise - dec);
+                    etReste.setText(FormatUtils.montantSansDevise(reste));
+                }
             }
 
             tvTotal.setText("Total: " + FormatUtils.montant(total));
+            tvNet.setText("Net: " + FormatUtils.montant(total - remise));
+            tvNet.setVisibility(View.VISIBLE);
         } finally {
             isRecalculating = false;
         }
     }
 
     private void enregistrer() {
+        updateCurrentLine(); // flush pending edits
         if (lignes.isEmpty()) {
             Toast.makeText(this, getString(R.string.aucun_article), Toast.LENGTH_SHORT).show();
             return;
@@ -357,19 +400,19 @@ public class AchatSaisieActivity extends AppCompatActivity {
         if (!heureVal.isEmpty()) dateVal += " " + heureVal;
         j.setDate(dateVal.isEmpty() ? FormatUtils.dateAujourdhui() : dateVal);
         j.setType(DatabaseHelper.TYPE_ACHAT);
-        j.setLibelle(etLibelle.getText() != null ? etLibelle.getText().toString() : "");
+        j.setLibelle("");
+
         j.setDetails(lignes);
         j.recalculerMontant();
-        double remise = FormatUtils.parseDouble(etRemise.getText() != null ? etRemise.getText().toString() : "0");
         double dec    = FormatUtils.parseDouble(etDec.getText() != null ? etDec.getText().toString() : "0");
+        double reste  = FormatUtils.parseDouble(etReste.getText() != null ? etReste.getText().toString() : "0");
+        long idTiers = idTiersSelectionne();
+        double remise = idTiers == DatabaseHelper.FOURN_COMPTANT_ID
+                ? Math.max(0, j.getMt() - dec)
+                : Math.max(0, j.getMt() - dec - reste);
         j.setRemise(remise);
         j.setDec(dec);
         j.setEnc(0);
-        // Fournisseur
-        int pos = spinFournisseur.getSelectedItemPosition();
-        long idTiers = (pos >= 0 && pos < fournisseurs.size())
-                ? fournisseurs.get(pos).getId()
-                : DatabaseHelper.FOURN_COMPTANT_ID;
         j.setIdTiers(idTiers);
 
         boolean ok = (journeeExistante != null) ? journeeDao.modifierOperation(j, true) : (journeeDao.enregistrerOperation(j, true) > 0);
@@ -384,6 +427,26 @@ public class AchatSaisieActivity extends AppCompatActivity {
     @Override public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) { finish(); return true; }
         return super.onOptionsItemSelected(item);
+    }
+
+    private long idTiersSelectionne() {
+        int pos = spinFournisseur.getSelectedItemPosition();
+        return (pos >= 0 && pos < fournisseurs.size())
+                ? fournisseurs.get(pos).getId()
+                : DatabaseHelper.FOURN_COMPTANT_ID;
+    }
+
+    private boolean estComptant(Tiers tiers, long comptantId) {
+        return tiers != null && (tiers.getId() == comptantId ||
+                (tiers.getTier() != null && tiers.getTier().toLowerCase().contains("comptant")));
+    }
+
+    private void installerSelectionFocus(TextInputEditText... champs) {
+        for (TextInputEditText champ : champs) {
+            champ.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus) champ.selectAll();
+            });
+        }
     }
 
     // ── Adapter lignes ───────────────────────────────────────

@@ -24,7 +24,7 @@
             android:orientation="vertical"
             android:padding="12dp">
 
-            <!-- Entête -->
+            <!-- 1ere ligne : Date et Heure -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="horizontal">
                 <com.google.android.material.textfield.TextInputLayout
@@ -33,27 +33,19 @@
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/et_date" android:layout_width="match_parent"
-                        android:layout_height="wrap_content" android:focusable="false" android:clickable="true" />
+                        android:layout_height="wrap_content" android:focusable="false" android:clickable="false" />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="0.8"
-                    android:hint="Heure" android:layout_marginEnd="6dp"
+                    android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:hint="Heure"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/et_heure" android:layout_width="match_parent"
-                        android:layout_height="wrap_content" android:focusable="false" android:clickable="true" />
-                </com.google.android.material.textfield.TextInputLayout>
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.5"
-                    android:hint="@string/libelle"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_libelle" android:layout_width="match_parent"
-                        android:layout_height="wrap_content" android:inputType="text" />
+                        android:layout_height="wrap_content" android:focusable="false" android:clickable="false" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
-            <!-- Fournisseur -->
+            <!-- 2eme ligne : Fournisseur -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="Fournisseur" android:textSize="13sp"
                 android:textColor="@color/text_secondary" android:layout_marginTop="10dp"
@@ -61,32 +53,18 @@
             <Spinner android:id="@+id/spin_fournisseur" android:layout_width="match_parent"
                 android:layout_height="48dp" android:background="@drawable/spinner_bg" />
 
-            <!-- Séparateur article et Mode Scan -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="horizontal" android:gravity="center_vertical"
-                android:layout_marginTop="14dp" android:layout_marginBottom="6dp">
-                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-                    android:text="Ajouter un article" android:textSize="13sp" android:textStyle="bold"
-                    android:textColor="@color/achat_color" />
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switch_scan"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Mode Scan" />
-            </LinearLayout>
-
-            <!-- Catégorie (Filtre Optionnel) -->
             <Spinner android:id="@+id/spin_categorie_detail" android:layout_width="match_parent"
                 android:layout_height="48dp" android:background="@drawable/spinner_bg" 
-                android:layout_marginTop="6dp" android:layout_marginBottom="6dp" />
+                android:layout_marginTop="6dp" android:layout_marginBottom="6dp" android:visibility="gone" />
 
-            <!-- Code Barre -->
+            <!-- 3eme ligne : Code Barre -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/til_code_barre"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:hint="@string/code_barre"
                 app:endIconMode="custom"
                 app:endIconDrawable="@android:drawable/ic_menu_camera"
+                android:layout_marginTop="6dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_code_barre" android:layout_width="match_parent"
@@ -94,10 +72,10 @@
                     android:imeOptions="actionSearch" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Libellé article / AutoComplete -->
+            <!-- 4eme ligne : Recherche (AutoComplete) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:hint="Recherche Code ou Description" android:layout_marginTop="6dp"
+                android:hint="Zone de recherche" android:layout_marginTop="6dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                 <AutoCompleteTextView
                     android:id="@+id/et_art" android:layout_width="match_parent"
@@ -105,7 +83,7 @@
                     android:completionThreshold="1" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Qté + Prix -->
+            <!-- 5eme ligne : Qté + Prix -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="horizontal" android:layout_marginTop="6dp">
                 <com.google.android.material.textfield.TextInputLayout
@@ -126,12 +104,6 @@
                         android:layout_height="wrap_content" android:inputType="numberDecimal" android:selectAllOnFocus="true" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
-
-            <Button android:id="@+id/btn_ajouter_ligne"
-                android:layout_width="match_parent" android:layout_height="42dp"
-                android:text="@string/valider" android:layout_marginTop="6dp"
-                android:backgroundTint="@color/achat_color"
-                style="@style/Widget.MaterialComponents.Button" />
 
             <!-- Liste des lignes -->
             <androidx.recyclerview.widget.RecyclerView

@@ -60,10 +60,10 @@ public class JournalFragment extends Fragment {
         new AlertDialog.Builder(requireContext())
             .setTitle("Nouvelle opération")
             .setItems(new CharSequence[]{
-                "Versement / Fournisseur (VF)",
-                "Encaissement / Client (EC)",
-                "Autres / Recettes (Entrée)",
-                "Autres / Dépenses (Sortie)"
+                "Versement/Fournisseur",
+                "Encaissement/Client",
+                "Autres/Recettes",
+                "Autres/Dépenses"
             }, (d, which) -> {
                 switch (which) {
                     case 0: dialogSaisieSimple(DatabaseHelper.TYPE_VERSEMENT_F,  "Versement Fournisseur", "F"); break;

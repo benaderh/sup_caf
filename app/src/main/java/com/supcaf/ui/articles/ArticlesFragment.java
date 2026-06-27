@@ -50,7 +50,7 @@ public class ArticlesFragment extends Fragment {
         articleAdapter = new ArticleAdapter(this::onArticleClick, this::onArticleLongClick);
         categorieAdapter = new CategorieAdapter();
         categorieAdapter.setListener(new CategorieAdapter.OnCategorieClickListener() {
-            @Override public void onClick(Categorie c) { /* Optionnel: filtrer les articles ? */ }
+            @Override public void onClick(Categorie c) { ouvrirCategorie(c); }
             @Override public void onLongClick(Categorie c) { onCategorieLongClick(c); }
         });
         
@@ -132,9 +132,31 @@ public class ArticlesFragment extends Fragment {
 
     // --- Catégories ---
     private void onCategorieLongClick(Categorie c) {
+        new AlertDialog.Builder(requireContext())
+            .setTitle(c.getCat())
+            .setItems(new CharSequence[]{"Modifier", "Supprimer"}, (d, which) -> {
+                if (which == 0) ouvrirCategorie(c);
+                else confirmerSuppressionCategorie(c);
+            }).show();
+    }
+
+    private void ouvrirCategorie(Categorie c) {
         Intent intent = new Intent(requireContext(), com.supcaf.ui.categories.CategorieSaisieActivity.class);
         intent.putExtra("categorie_id", c.getId());
         startActivity(intent);
+    }
+
+    private void confirmerSuppressionCategorie(Categorie c) {
+        new AlertDialog.Builder(requireContext())
+            .setMessage(getString(R.string.confirm_supprimer))
+            .setPositiveButton(R.string.oui, (d, w) -> {
+                int res = categorieDao.supprimer(c.getId());
+                if (res == -2) {
+                    Toast.makeText(requireContext(), "Impossible : categorie utilisee dans des articles", Toast.LENGTH_LONG).show();
+                }
+                charger("");
+            })
+            .setNegativeButton(R.string.non, null).show();
     }
 
 

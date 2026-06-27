@@ -125,6 +125,17 @@ public class ArticleDao {
         return list;
     }
 
+    public List<Article> listerParCategorie(long idCategorie) {
+        if (idCategorie <= 0) return listerTous();
+        List<Article> list = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        try (Cursor c = db.rawQuery(SQL_SELECT_ALL + "WHERE a.id_c=? ORDER BY a.a_art",
+                new String[]{String.valueOf(idCategorie)})) {
+            while (c.moveToNext()) list.add(fromCursor(c));
+        }
+        return list;
+    }
+
     public Article parId(long id) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         try (Cursor c = db.rawQuery(SQL_SELECT_ALL + "WHERE a.a_id=?",
@@ -143,6 +154,13 @@ public class ArticleDao {
             if (c.moveToFirst()) return fromCursor(c);
         }
         return null;
+    }
+
+    public Article parReference(String ref) {
+        if (ref == null || ref.trim().isEmpty()) return null;
+        Article article = parCodeBarre(ref.trim());
+        if (article != null) return article;
+        return parArt(ref.trim());
     }
 
     /** Cherche par libellé exact (insensible à la casse) */

@@ -17,25 +17,36 @@
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="vertical" android:padding="12dp">
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-                <com.google.android.material.textfield.TextInputLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/date" android:layout_marginEnd="6dp" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_date" android:layout_width="match_parent" android:layout_height="wrap_content" android:focusable="false" android:clickable="true" /></com.google.android.material.textfield.TextInputLayout>
-                <com.google.android.material.textfield.TextInputLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="0.8" android:hint="Heure" android:layout_marginEnd="6dp" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_heure" android:layout_width="match_parent" android:layout_height="wrap_content" android:focusable="false" android:clickable="true" /></com.google.android.material.textfield.TextInputLayout>
-                <com.google.android.material.textfield.TextInputLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.5" android:hint="@string/libelle" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_libelle" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" /></com.google.android.material.textfield.TextInputLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:hint="@string/date" android:layout_marginEnd="6dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_date" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:focusable="false" android:clickable="false" />
+                </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:hint="Heure"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_heure" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:focusable="false" android:clickable="false" />
+                </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Client" android:textSize="13sp" android:textColor="@color/text_secondary" android:layout_marginTop="10dp" android:layout_marginBottom="4dp" />
-            <Spinner android:id="@+id/spin_client" android:layout_width="match_parent" android:layout_height="48dp" android:background="@drawable/spinner_bg" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Client" android:textSize="13sp"
+                android:textColor="@color/text_secondary" android:layout_marginTop="10dp"
+                android:layout_marginBottom="4dp" />
+            <Spinner android:id="@+id/spin_client" android:layout_width="match_parent"
+                android:layout_height="48dp" android:background="@drawable/spinner_bg" />
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="14dp" android:layout_marginBottom="6dp">
-                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Ajouter un article" android:textSize="13sp" android:textStyle="bold" android:textColor="@color/vente_color" />
-                <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switch_scan" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mode Scan" />
-            </LinearLayout>
-
-            <!-- Catégorie (Filtre Optionnel) -->
-            <Spinner android:id="@+id/spin_categorie_detail" android:layout_width="match_parent" android:layout_height="48dp" android:background="@drawable/spinner_bg" android:layout_marginTop="6dp" android:layout_marginBottom="6dp" />
+            <Spinner android:id="@+id/spin_categorie_detail" android:layout_width="match_parent"
+                android:layout_height="48dp" android:background="@drawable/spinner_bg" 
+                android:layout_marginTop="6dp" android:layout_marginBottom="6dp" android:visibility="gone" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/til_code_barre"
@@ -43,20 +54,44 @@
                 android:hint="@string/code_barre"
                 app:endIconMode="custom"
                 app:endIconDrawable="@android:drawable/ic_menu_camera"
+                android:layout_marginTop="6dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_code_barre" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:imeOptions="actionSearch" /></com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_code_barre" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:inputType="number"
+                    android:imeOptions="actionSearch" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Recherche Code ou Description" android:layout_marginTop="6dp" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                <AutoCompleteTextView android:id="@+id/et_art" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textCapWords" android:completionThreshold="1" /></com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:hint="Zone de recherche" android:layout_marginTop="6dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                <AutoCompleteTextView
+                    android:id="@+id/et_art" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:inputType="textCapWords"
+                    android:completionThreshold="1" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="6dp">
-                <com.google.android.material.textfield.TextInputLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/quantite" android:layout_marginEnd="6dp" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_qte" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="1" android:inputType="numberDecimal" android:selectAllOnFocus="true" /></com.google.android.material.textfield.TextInputLayout>
-                <com.google.android.material.textfield.TextInputLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/prix_unitaire" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_prix" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberDecimal" android:selectAllOnFocus="true" /></com.google.android.material.textfield.TextInputLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="6dp">
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:hint="@string/quantite" android:layout_marginEnd="6dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_qte" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:text="1"
+                        android:inputType="numberDecimal" android:selectAllOnFocus="true" />
+                </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:hint="@string/prix_unitaire"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_prix" android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:inputType="numberDecimal" android:selectAllOnFocus="true" />
+                </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
-
-            <Button android:id="@+id/btn_ajouter_ligne" android:layout_width="match_parent" android:layout_height="42dp" android:text="@string/valider" android:layout_marginTop="6dp" android:backgroundTint="@color/vente_color" style="@style/Widget.MaterialComponents.Button" />
 
             <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_lignes" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" android:layout_marginTop="8dp" />
 
