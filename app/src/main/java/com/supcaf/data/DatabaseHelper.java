@@ -183,6 +183,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         client.put(TRS_TYPE, TIERS_CLIENT);
         client.put(TRS_OBS, "Client par défaut — ventes comptant");
         db.insert(T_TIERS, null, client);
+
+        ContentValues autres = new ContentValues();
+        autres.put(TRS_TIER, "Autres Comptant");
+        autres.put(TRS_TYPE, TIERS_AUTRES);
+        autres.put(TRS_OBS, "Tiers par défaut — autres opérations");
+        db.insert(T_TIERS, null, autres);
     }
 
     @Override
@@ -195,6 +201,43 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         super.onOpen(db);
         if (!db.isReadOnly()) {
             db.execSQL("PRAGMA foreign_keys = ON;");
+            verifierTiersParDefaut(db);
+        }
+    }
+
+    private void verifierTiersParDefaut(SQLiteDatabase db) {
+        // Tiers 1
+        try (android.database.Cursor c = db.rawQuery("SELECT 1 FROM " + T_TIERS + " WHERE " + TRS_ID + " = 1", null)) {
+            if (!c.moveToFirst()) {
+                ContentValues fourn = new ContentValues();
+                fourn.put(TRS_ID, 1);
+                fourn.put(TRS_TIER, "Comptant Fournisseur");
+                fourn.put(TRS_TYPE, TIERS_FOURNISSEUR);
+                fourn.put(TRS_OBS, "Fournisseur par défaut — achats comptant");
+                db.insert(T_TIERS, null, fourn);
+            }
+        }
+        // Tiers 2
+        try (android.database.Cursor c = db.rawQuery("SELECT 1 FROM " + T_TIERS + " WHERE " + TRS_ID + " = 2", null)) {
+            if (!c.moveToFirst()) {
+                ContentValues client = new ContentValues();
+                client.put(TRS_ID, 2);
+                client.put(TRS_TIER, "Comptant Client");
+                client.put(TRS_TYPE, TIERS_CLIENT);
+                client.put(TRS_OBS, "Client par défaut — ventes comptant");
+                db.insert(T_TIERS, null, client);
+            }
+        }
+        // Tiers 3
+        try (android.database.Cursor c = db.rawQuery("SELECT 1 FROM " + T_TIERS + " WHERE " + TRS_ID + " = 3", null)) {
+            if (!c.moveToFirst()) {
+                ContentValues autres = new ContentValues();
+                autres.put(TRS_ID, 3);
+                autres.put(TRS_TIER, "Autres Comptant");
+                autres.put(TRS_TYPE, TIERS_AUTRES);
+                autres.put(TRS_OBS, "Tiers par défaut — autres opérations");
+                db.insert(T_TIERS, null, autres);
+            }
         }
     }
 }

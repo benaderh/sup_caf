@@ -48,10 +48,15 @@ public class TiersDao {
     }
 
     public int supprimer(long id) {
-        return dbHelper.getWritableDatabase()
-                .delete(DatabaseHelper.T_TIERS,
-                        DatabaseHelper.TRS_ID + "=?",
-                        new String[]{String.valueOf(id)});
+        if (id <= 3) return -1; // Tiers par défaut non supprimables
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        // Vérifier utilisation
+        try (Cursor c = db.rawQuery("SELECT 1 FROM journee WHERE id_t=?", new String[]{String.valueOf(id)})) {
+            if (c.moveToFirst()) return -2; // Utilisé dans journee
+        }
+        return db.delete(DatabaseHelper.T_TIERS,
+                DatabaseHelper.TRS_ID + "=?",
+                new String[]{String.valueOf(id)});
     }
 
     public Tiers parId(long id) {

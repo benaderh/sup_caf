@@ -43,6 +43,16 @@ public class TiersSaisieActivity extends AppCompatActivity {
                     default:  rgType.check(R.id.rb_autres);
                 }
             }
+            // Ajouter bouton supprimer dynamiquement ou configurer si on l'a mis dans le XML
+            Button btnSuppr = findViewById(R.id.btn_supprimer);
+            if (btnSuppr != null) {
+                if (tiersEnCours.getId() <= 3) {
+                    btnSuppr.setVisibility(View.GONE);
+                } else {
+                    btnSuppr.setVisibility(View.VISIBLE);
+                    btnSuppr.setOnClickListener(v -> confirmerSuppression());
+                }
+            }
         } else {
             if (getSupportActionBar() != null) getSupportActionBar().setTitle("Nouveau tiers");
             tiersEnCours = new Tiers();
@@ -73,6 +83,22 @@ public class TiersSaisieActivity extends AppCompatActivity {
             Toast.makeText(this, getString(R.string.enregistre), Toast.LENGTH_SHORT).show();
             finish();
         }
+    }
+
+    private void confirmerSuppression() {
+        if (tiersEnCours == null || tiersEnCours.getId() <= 3) return;
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+            .setMessage(getString(R.string.confirm_supprimer))
+            .setPositiveButton(R.string.oui, (d, w) -> {
+                int res = dao.supprimer(tiersEnCours.getId());
+                if (res == -2) {
+                    Toast.makeText(this, "Impossible : Tiers utilisé dans une opération", Toast.LENGTH_LONG).show();
+                } else if (res > 0) {
+                    Toast.makeText(this, "Supprimé", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            })
+            .setNegativeButton(R.string.non, null).show();
     }
 
     @Override public boolean onOptionsItemSelected(MenuItem item) {

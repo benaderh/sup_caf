@@ -101,6 +101,16 @@
                 android:layout_marginTop="8dp"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
+            <Button
+                android:id="@+id/btn_supprimer"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Supprimer"
+                android:textColor="@android:color/holo_red_dark"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                style="@style/Widget.MaterialComponents.Button.TextButton" />
+
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

@@ -49,6 +49,17 @@ public class ArticleSaisieActivity extends AppCompatActivity {
             String artPre = getIntent().getStringExtra("art");
             if (artPre != null) etArt.setText(artPre);
         }
+        
+        Button btnSuppr = findViewById(R.id.btn_supprimer);
+        if (btnSuppr != null) {
+            if (id != -1) {
+                btnSuppr.setVisibility(View.VISIBLE);
+                btnSuppr.setOnClickListener(v -> confirmerSuppression());
+            } else {
+                btnSuppr.setVisibility(View.GONE);
+            }
+        }
+
         findViewById(R.id.btn_enregistrer).setOnClickListener(v -> enregistrer());
         findViewById(R.id.btn_annuler).setOnClickListener(v -> finish());
     }
@@ -125,6 +136,22 @@ public class ArticleSaisieActivity extends AppCompatActivity {
             Toast.makeText(this, getString(R.string.enregistre), Toast.LENGTH_SHORT).show();
             finish();
         }
+    }
+
+    private void confirmerSuppression() {
+        if (articleEnCours == null || articleEnCours.getId() == 0) return;
+        new AlertDialog.Builder(this)
+            .setMessage(getString(R.string.confirm_supprimer))
+            .setPositiveButton(R.string.oui, (d, w) -> {
+                int res = articleDao.supprimer(articleEnCours.getId());
+                if (res == -2) {
+                    Toast.makeText(this, "Impossible : Article utilisé dans un achat/vente", Toast.LENGTH_LONG).show();
+                } else if (res > 0) {
+                    Toast.makeText(this, "Supprimé", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            })
+            .setNegativeButton(R.string.non, null).show();
     }
 
     @Override

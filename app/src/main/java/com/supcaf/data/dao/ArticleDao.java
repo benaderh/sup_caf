@@ -80,6 +80,9 @@ public class ArticleDao {
 
     public int supprimer(long id) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
+        try (Cursor c = db.rawQuery("SELECT 1 FROM journee_detail WHERE id_a=?", new String[]{String.valueOf(id)})) {
+            if (c.moveToFirst()) return -2; // Utilisé
+        }
         return db.delete(DatabaseHelper.T_ARTICLES,
                 DatabaseHelper.ART_ID + "=?",
                 new String[]{String.valueOf(id)});

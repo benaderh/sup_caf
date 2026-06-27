@@ -182,6 +182,118 @@ public class JourneeDao {
         }
     }
 
+    /**
+     * Modifie une opération existante. 
+     * Restaure l'ancien stock, supprime les lignes, met à jour l'entête, réinsère les lignes, 
+     * puis lance un recalcul chronologique du stock pour les articles touchés.
+     */
+    public boolean modifierOperation(Journee j, boolean isAchat) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        db.beginTransaction();
+        try {
+            // 1. Identifier les articles de l'ancienne opération pour le recalcul
+            List<Long> articlesTouches = new ArrayList<>();
+            try (Cursor c = db.rawQuery("SELECT id_a FROM journee_detail WHERE id_j=?", new String[]{String.valueOf(j.getId())})) {
+                while (c.moveToNext()) {
+                    if (!articlesTouches.contains(c.getLong(0))) articlesTouches.add(c.getLong(0));
+                }
+            }
+
+            // 2. Restaurer les stocks des anciennes lignes (comme dans supprimer)
+            try (Cursor c = db.rawQuery("SELECT id_a, d_q FROM journee_detail WHERE id_j=?", new String[]{String.valueOf(j.getId())})) {
+                while (c.moveToNext()) {
+                    long idA = c.getLong(0);
+                    double q  = c.getDouble(1);
+                    double stockActuel = 0;
+                    try (Cursor sc = db.rawQuery("SELECT qs FROM articles WHERE a_id=?", new String[]{String.valueOf(idA)})) {
+                        if (sc.moveToFirst()) stockActuel = sc.getDouble(0);
+                    }
+                    double restaure = isAchat ? stockActuel - q : stockActuel + q;
+                    articleDao.mettreAJourStock(db, idA, restaure);
+                }
+            }
+            db.delete(DatabaseHelper.T_JOURNEE_DETAIL, DatabaseHelper.DET_IDJ + "=?", new String[]{String.valueOf(j.getId())});
+
+            // 3. Mettre à jour l'entête
+            ContentValues cv = new ContentValues();
+            cv.put(DatabaseHelper.JRN_DATE,    j.getDate());
+            cv.put(DatabaseHelper.JRN_TYPE,    j.getType());
+            cv.put(DatabaseHelper.JRN_LIBELLE, j.getLibelle());
+            cv.put(DatabaseHelper.JRN_IDT,     j.getIdTiers());
+            cv.put(DatabaseHelper.JRN_MT,      j.getMt());
+            cv.put(DatabaseHelper.JRN_REMISE,  j.getRemise());
+            cv.put(DatabaseHelper.JRN_ENC,     j.getEnc());
+            cv.put(DatabaseHelper.JRN_DEC,     j.getDec());
+            db.update(DatabaseHelper.T_JOURNEE, cv, DatabaseHelper.JRN_ID + "=?", new String[]{String.valueOf(j.getId())});
+
+            // 4. Ajouter les articles de la nouvelle opération
+            for (JourneeDetail d : j.getDetails()) {
+                if (!articlesTouches.contains(d.getIdArticle())) articlesTouches.add(d.getIdArticle());
+            }
+
+            // 5. Insérer les nouvelles lignes et mettre à jour le stock temporaire (sera corrigé par le recalcul)
+            for (JourneeDetail d : j.getDetails()) {
+                double stockActuel = 0;
+                try (Cursor sc = db.rawQuery("SELECT qs FROM articles WHERE a_id=?", new String[]{String.valueOf(d.getIdArticle())})) {
+                    if (sc.moveToFirst()) stockActuel = sc.getDouble(0);
+                }
+                double nouveauStock = isAchat ? stockActuel + d.getQuantite() : stockActuel - d.getQuantite();
+                
+                ContentValues dcv = new ContentValues();
+                dcv.put(DatabaseHelper.DET_IDJ, j.getId());
+                dcv.put(DatabaseHelper.DET_IDA, d.getIdArticle());
+                dcv.put(DatabaseHelper.DET_Q,   d.getQuantite());
+                dcv.put(DatabaseHelper.DET_P,   d.getPrix());
+                dcv.put(DatabaseHelper.DET_QS,  nouveauStock); // Temporaire
+                dcv.put(DatabaseHelper.DET_OBS, d.getObs());
+                db.insert(DatabaseHelper.T_JOURNEE_DETAIL, null, dcv);
+
+                articleDao.mettreAJourStock(db, d.getIdArticle(), nouveauStock);
+            }
+
+            // 6. Recalcul chronologique complet pour les articles modifiés
+            for (Long idA : articlesTouches) {
+                recalculerStockChronologique(db, idA);
+            }
+
+            db.setTransactionSuccessful();
+            return true;
+        } catch (Exception e) {
+            return false;
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    /**
+     * Recalcule d_qs et qs pour un article en repassant toutes ses opérations chronologiquement.
+     */
+    private void recalculerStockChronologique(SQLiteDatabase db, long idArticle) {
+        double stockCourant = 0;
+        // Lire toutes les opérations pour cet article dans l'ordre chronologique
+        String sql = "SELECT d.d_id, d.d_q, j.j_type FROM journee_detail d " +
+                     "JOIN journee j ON d.id_j = j.j_id " +
+                     "WHERE d.id_a = ? ORDER BY j.j_date ASC, j.j_id ASC";
+        try (Cursor c = db.rawQuery(sql, new String[]{String.valueOf(idArticle)})) {
+            while (c.moveToNext()) {
+                long dId = c.getLong(0);
+                double q = c.getDouble(1);
+                String type = c.getString(2);
+                if ("A".equals(type)) {
+                    stockCourant += q;
+                } else if ("V".equals(type)) {
+                    stockCourant -= q;
+                }
+                // Mettre à jour d_qs
+                ContentValues cv = new ContentValues();
+                cv.put(DatabaseHelper.DET_QS, stockCourant);
+                db.update(DatabaseHelper.T_JOURNEE_DETAIL, cv, DatabaseHelper.DET_ID + "=?", new String[]{String.valueOf(dId)});
+            }
+        }
+        // Mettre à jour le stock final de l'article
+        articleDao.mettreAJourStock(db, idArticle, stockCourant);
+    }
+
     // ── Requêtes de liste ────────────────────────────────────
     private static final String SQL_BASE =
         "SELECT j.*, t.t_tier, t.t_type FROM journee j " +

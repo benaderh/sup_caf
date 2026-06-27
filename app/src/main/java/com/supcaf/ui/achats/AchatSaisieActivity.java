@@ -66,7 +66,7 @@ public class AchatSaisieActivity extends AppCompatActivity {
             etDate.setText(FormatUtils.dateAujourdhui());
         }
 
-        lignesAdapter = new LignesAdapter(lignes, this::supprimerLigne);
+        lignesAdapter = new LignesAdapter(lignes, this::supprimerLigne, this::modifierLigne);
         rvLignes.setLayoutManager(new LinearLayoutManager(this));
         rvLignes.setAdapter(lignesAdapter);
         recalculer();
@@ -74,6 +74,17 @@ public class AchatSaisieActivity extends AppCompatActivity {
         // Recherche article par code barre ou libellé
         findViewById(R.id.btn_ajouter_ligne).setOnClickListener(v -> ajouterLigne());
         etCodeBarre.setOnEditorActionListener((tv, actionId, event) -> { ajouterLigne(); return true; });
+        
+        com.google.android.material.switchmaterial.SwitchMaterial switchScan = findViewById(R.id.switch_scan);
+        if (switchScan != null) {
+            switchScan.setOnCheckedChangeListener((btn, isChecked) -> {
+                if (isChecked) {
+                    etCodeBarre.requestFocus();
+                    Toast.makeText(this, "Mode Scan activé", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
         etDec.addTextChangedListener(new android.text.TextWatcher() {
             public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
             public void onTextChanged(CharSequence s, int st, int b, int c) { recalculer(); }
@@ -87,6 +98,32 @@ public class AchatSaisieActivity extends AppCompatActivity {
 
         findViewById(R.id.btn_enregistrer).setOnClickListener(v -> enregistrer());
         findViewById(R.id.btn_annuler).setOnClickListener(v -> finish());
+        
+        Button btnSuppr = findViewById(R.id.btn_supprimer_journee);
+        if (btnSuppr != null) {
+            if (journeeExistante != null) {
+                btnSuppr.setVisibility(View.VISIBLE);
+                btnSuppr.setOnClickListener(v -> confirmerSuppression());
+            } else {
+                btnSuppr.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void confirmerSuppression() {
+        if (journeeExistante == null) return;
+        new AlertDialog.Builder(this)
+            .setMessage(getString(R.string.confirm_supprimer))
+            .setPositiveButton(R.string.oui, (d, w) -> {
+                boolean ok = journeeDao.supprimer(journeeExistante.getId());
+                if (ok) {
+                    Toast.makeText(this, "Achat supprimé", Toast.LENGTH_SHORT).show();
+                    finish();
+                } else {
+                    Toast.makeText(this, "Erreur lors de la suppression", Toast.LENGTH_SHORT).show();
+                }
+            })
+            .setNegativeButton(R.string.non, null).show();
     }
 
     private void lierVues() {
@@ -162,6 +199,12 @@ public class AchatSaisieActivity extends AppCompatActivity {
         etArt.setText("");
         etQte.setText("1");
         etPrix.setText("");
+        
+        com.google.android.material.switchmaterial.SwitchMaterial switchScan = findViewById(R.id.switch_scan);
+        if (switchScan != null && switchScan.isChecked()) {
+            etCodeBarre.requestFocus();
+        }
+        
         recalculer();
     }
 
@@ -169,6 +212,16 @@ public class AchatSaisieActivity extends AppCompatActivity {
         lignes.remove(pos);
         lignesAdapter.notifyItemRemoved(pos);
         recalculer();
+    }
+
+    private void modifierLigne(int pos) {
+        JourneeDetail d = lignes.get(pos);
+        etCodeBarre.setText(d.getNomArticle());
+        etArt.setText(d.getNomArticle());
+        etQte.setText(String.valueOf(d.getQuantite()));
+        etPrix.setText(String.valueOf(d.getPrix()));
+        supprimerLigne(pos);
+        Toast.makeText(this, "Ligne prête à être modifiée en haut", Toast.LENGTH_SHORT).show();
     }
 
     private void recalculer() {
@@ -189,7 +242,7 @@ public class AchatSaisieActivity extends AppCompatActivity {
             Toast.makeText(this, getString(R.string.aucun_article), Toast.LENGTH_SHORT).show();
             return;
         }
-        Journee j = new Journee();
+        Journee j = journeeExistante != null ? journeeExistante : new Journee();
         j.setDate(etDate.getText() != null ? etDate.getText().toString() : FormatUtils.dateAujourdhui());
         j.setType(DatabaseHelper.TYPE_ACHAT);
         j.setLibelle(etLibelle.getText() != null ? etLibelle.getText().toString() : "");
@@ -207,9 +260,8 @@ public class AchatSaisieActivity extends AppCompatActivity {
                 : DatabaseHelper.FOURN_COMPTANT_ID;
         j.setIdTiers(idTiers);
 
-        // Si dec == net → comptant, sinon dette
-        long result = journeeDao.enregistrerOperation(j, true);
-        if (result > 0) {
+        boolean ok = (journeeExistante != null) ? journeeDao.modifierOperation(j, true) : (journeeDao.enregistrerOperation(j, true) > 0);
+        if (ok) {
             Toast.makeText(this, getString(R.string.enregistre), Toast.LENGTH_SHORT).show();
             finish();
         } else {
@@ -224,10 +276,11 @@ public class AchatSaisieActivity extends AppCompatActivity {
 
     // ── Adapter lignes ───────────────────────────────────────
     static class LignesAdapter extends RecyclerView.Adapter<LignesAdapter.VH> {
-        interface OnSuppr { void on(int pos); }
+        interface OnAction { void on(int pos); }
         private final List<JourneeDetail> data;
-        private final OnSuppr onSuppr;
-        LignesAdapter(List<JourneeDetail> d, OnSuppr s) { data = d; onSuppr = s; }
+        private final OnAction onSuppr;
+        private final OnAction onEdit;
+        LignesAdapter(List<JourneeDetail> d, OnAction s, OnAction e) { data = d; onSuppr = s; onEdit = e; }
 
         @Override public VH onCreateViewHolder(ViewGroup p, int t) {
             return new VH(android.view.LayoutInflater.from(p.getContext())
@@ -240,6 +293,9 @@ public class AchatSaisieActivity extends AppCompatActivity {
             h.tvQte.setText(FormatUtils.quantite(d.getQuantite()) + " × " + FormatUtils.montant(d.getPrix()));
             h.tvTotal.setText(FormatUtils.montant(d.getMontantTotal()));
             h.btnSuppr.setOnClickListener(v -> onSuppr.on(h.getAdapterPosition()));
+            h.itemView.setOnClickListener(v -> {
+                if (onEdit != null) onEdit.on(h.getAdapterPosition());
+            });
         }
 
         @Override public int getItemCount() { return data.size(); }

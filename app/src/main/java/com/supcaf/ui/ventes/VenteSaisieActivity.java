@@ -71,13 +71,24 @@ public class VenteSaisieActivity extends AppCompatActivity {
             etDate.setText(FormatUtils.dateAujourdhui());
         }
 
-        lignesAdapter = new LignesAdapter(lignes, this::supprimerLigne);
+        lignesAdapter = new LignesAdapter(lignes, this::supprimerLigne, this::modifierLigne);
         rvLignes.setLayoutManager(new LinearLayoutManager(this));
         rvLignes.setAdapter(lignesAdapter);
         recalculer();
 
         findViewById(R.id.btn_ajouter_ligne).setOnClickListener(v -> ajouterLigne());
         etCodeBarre.setOnEditorActionListener((tv, id, ev) -> { ajouterLigne(); return true; });
+        
+        com.google.android.material.switchmaterial.SwitchMaterial switchScan = findViewById(R.id.switch_scan);
+        if (switchScan != null) {
+            switchScan.setOnCheckedChangeListener((btn, isChecked) -> {
+                if (isChecked) {
+                    etCodeBarre.requestFocus();
+                    Toast.makeText(this, "Mode Scan activé", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
         etEnc.addTextChangedListener(new android.text.TextWatcher() {
             public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
             public void onTextChanged(CharSequence s, int st, int b, int c) { recalculer(); }
@@ -91,6 +102,31 @@ public class VenteSaisieActivity extends AppCompatActivity {
 
         findViewById(R.id.btn_enregistrer).setOnClickListener(v -> enregistrer());
         findViewById(R.id.btn_annuler).setOnClickListener(v -> finish());
+        
+        Button btnSuppr = findViewById(R.id.btn_supprimer_journee);
+        if (btnSuppr != null) {
+            if (jId != -1) {
+                btnSuppr.setVisibility(View.VISIBLE);
+                btnSuppr.setOnClickListener(v -> confirmerSuppression(jId));
+            } else {
+                btnSuppr.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void confirmerSuppression(long id) {
+        new AlertDialog.Builder(this)
+            .setMessage(getString(R.string.confirm_supprimer))
+            .setPositiveButton(R.string.oui, (d, w) -> {
+                boolean ok = journeeDao.supprimer(id);
+                if (ok) {
+                    Toast.makeText(this, "Vente supprimée", Toast.LENGTH_SHORT).show();
+                    finish();
+                } else {
+                    Toast.makeText(this, "Erreur lors de la suppression", Toast.LENGTH_SHORT).show();
+                }
+            })
+            .setNegativeButton(R.string.non, null).show();
     }
 
     private void lierVues() {
@@ -150,10 +186,30 @@ public class VenteSaisieActivity extends AppCompatActivity {
         lignes.add(new JourneeDetail(article.getId(), article.getArt(), qte, prix, article.getUv()));
         lignesAdapter.notifyItemInserted(lignes.size() - 1);
         etCodeBarre.setText(""); etArt.setText(""); etQte.setText("1"); etPrix.setText("");
+        
+        com.google.android.material.switchmaterial.SwitchMaterial switchScan = findViewById(R.id.switch_scan);
+        if (switchScan != null && switchScan.isChecked()) {
+            etCodeBarre.requestFocus();
+        }
+        
         recalculer();
     }
 
-    private void supprimerLigne(int pos) { lignes.remove(pos); lignesAdapter.notifyItemRemoved(pos); recalculer(); }
+    private void supprimerLigne(int pos) {
+        lignes.remove(pos);
+        lignesAdapter.notifyItemRemoved(pos);
+        recalculer();
+    }
+
+    private void modifierLigne(int pos) {
+        JourneeDetail d = lignes.get(pos);
+        etCodeBarre.setText(d.getNomArticle());
+        etArt.setText(d.getNomArticle());
+        etQte.setText(String.valueOf(d.getQuantite()));
+        etPrix.setText(String.valueOf(d.getPrix()));
+        supprimerLigne(pos);
+        Toast.makeText(this, "Ligne prête à être modifiée en haut", Toast.LENGTH_SHORT).show();
+    }
 
     private void recalculer() {
         double total  = 0;
@@ -170,7 +226,7 @@ public class VenteSaisieActivity extends AppCompatActivity {
 
     private void enregistrer() {
         if (lignes.isEmpty()) { Toast.makeText(this, getString(R.string.aucun_article), Toast.LENGTH_SHORT).show(); return; }
-        Journee j = new Journee();
+        Journee j = journeeExistante != null ? journeeExistante : new Journee();
         j.setDate(etDate.getText() != null ? etDate.getText().toString() : FormatUtils.dateAujourdhui());
         j.setType(DatabaseHelper.TYPE_VENTE);
         j.setLibelle(etLibelle.getText() != null ? etLibelle.getText().toString() : "");
@@ -178,12 +234,22 @@ public class VenteSaisieActivity extends AppCompatActivity {
         j.recalculerMontant();
         double remise = FormatUtils.parseDouble(etRemise.getText() != null ? etRemise.getText().toString() : "0");
         double enc    = FormatUtils.parseDouble(etEnc.getText() != null ? etEnc.getText().toString() : "0");
-        j.setRemise(remise); j.setEnc(enc); j.setDec(0);
+        j.setRemise(remise);
+        j.setEnc(enc);
+        j.setDec(0);
         int pos = spinClient.getSelectedItemPosition();
-        j.setIdTiers(pos >= 0 && pos < clients.size() ? clients.get(pos).getId() : DatabaseHelper.CLIENT_COMPTANT_ID);
-        long result = journeeDao.enregistrerOperation(j, false);
-        if (result > 0) { Toast.makeText(this, getString(R.string.enregistre), Toast.LENGTH_SHORT).show(); finish(); }
-        else Toast.makeText(this, getString(R.string.erreur_saisie), Toast.LENGTH_SHORT).show();
+        long idTiers = (pos >= 0 && pos < clients.size())
+                ? clients.get(pos).getId()
+                : DatabaseHelper.CLIENT_COMPTANT_ID;
+        j.setIdTiers(idTiers);
+
+        boolean ok = (journeeExistante != null) ? journeeDao.modifierOperation(j, false) : (journeeDao.enregistrerOperation(j, false) > 0);
+        if (ok) {
+            Toast.makeText(this, getString(R.string.enregistre), Toast.LENGTH_SHORT).show();
+            finish();
+        } else {
+            Toast.makeText(this, getString(R.string.erreur_saisie), Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override public boolean onOptionsItemSelected(MenuItem item) {
@@ -192,25 +258,40 @@ public class VenteSaisieActivity extends AppCompatActivity {
     }
 
     static class LignesAdapter extends RecyclerView.Adapter<LignesAdapter.VH> {
-        interface OnSuppr { void on(int pos); }
+        interface OnAction { void on(int pos); }
         private final List<JourneeDetail> data;
-        private final OnSuppr onSuppr;
-        LignesAdapter(List<JourneeDetail> d, OnSuppr s) { data = d; onSuppr = s; }
+        private final OnAction onSuppr;
+        private final OnAction onEdit;
+        LignesAdapter(List<JourneeDetail> d, OnAction s, OnAction e) { data = d; onSuppr = s; onEdit = e; }
+
         @Override public VH onCreateViewHolder(ViewGroup p, int t) {
             return new VH(android.view.LayoutInflater.from(p.getContext())
                     .inflate(R.layout.item_ligne_detail, p, false));
         }
+
         @Override public void onBindViewHolder(VH h, int pos) {
             JourneeDetail d = data.get(pos);
             h.tvArt.setText(d.getNomArticle());
             h.tvQte.setText(FormatUtils.quantite(d.getQuantite()) + " × " + FormatUtils.montant(d.getPrix()));
             h.tvTotal.setText(FormatUtils.montant(d.getMontantTotal()));
             h.btnSuppr.setOnClickListener(v -> onSuppr.on(h.getAdapterPosition()));
+            h.itemView.setOnClickListener(v -> {
+                if (onEdit != null) onEdit.on(h.getAdapterPosition());
+            });
         }
+
         @Override public int getItemCount() { return data.size(); }
+
         static class VH extends RecyclerView.ViewHolder {
-            TextView tvArt, tvQte, tvTotal; ImageButton btnSuppr;
-            VH(View v) { super(v); tvArt=v.findViewById(R.id.tv_art); tvQte=v.findViewById(R.id.tv_qte); tvTotal=v.findViewById(R.id.tv_total); btnSuppr=v.findViewById(R.id.btn_suppr); }
+            TextView tvArt, tvQte, tvTotal;
+            ImageButton btnSuppr;
+            VH(View v) {
+                super(v);
+                tvArt   = v.findViewById(R.id.tv_art);
+                tvQte   = v.findViewById(R.id.tv_qte);
+                tvTotal = v.findViewById(R.id.tv_total);
+                btnSuppr = v.findViewById(R.id.btn_suppr);
+            }
         }
     }
 }

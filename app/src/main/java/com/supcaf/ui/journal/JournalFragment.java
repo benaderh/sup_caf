@@ -60,14 +60,16 @@ public class JournalFragment extends Fragment {
         new AlertDialog.Builder(requireContext())
             .setTitle("Nouvelle opération")
             .setItems(new CharSequence[]{
-                "Versement Fournisseur (VF)",
-                "Encaissement Client (EC)",
-                "Autres (caisse)"
+                "Versement / Fournisseur (VF)",
+                "Encaissement / Client (EC)",
+                "Autres / Recettes (Entrée)",
+                "Autres / Dépenses (Sortie)"
             }, (d, which) -> {
                 switch (which) {
                     case 0: dialogSaisieSimple(DatabaseHelper.TYPE_VERSEMENT_F,  "Versement Fournisseur", "F"); break;
                     case 1: dialogSaisieSimple(DatabaseHelper.TYPE_ENCAISSEMENT, "Encaissement Client",   "C"); break;
-                    case 2: dialogSaisieSimple(DatabaseHelper.TYPE_AUTRES,       "Autres",                "A"); break;
+                    case 2: dialogSaisieSimple(DatabaseHelper.TYPE_AUTRES,       "Autres / Recettes",     "AR"); break;
+                    case 3: dialogSaisieSimple(DatabaseHelper.TYPE_AUTRES,       "Autres / Dépenses",     "AD"); break;
                 }
             }).show();
     }
@@ -104,9 +106,10 @@ public class JournalFragment extends Fragment {
             tvMtLabel.setText("Montant décaissé");
         } else if (DatabaseHelper.TYPE_ENCAISSEMENT.equals(type)) {
             tvMtLabel.setText("Montant encaissé");
+        } else if ("AR".equals(typeTiers)) {
+            tvMtLabel.setText("Montant encaissé (Recette)");
         } else {
-            // Autres : entrée ou sortie de caisse
-            tvMtLabel.setText("Décaissé (sortie) / 0 si entrée");
+            tvMtLabel.setText("Montant décaissé (Dépense)");
         }
 
         new AlertDialog.Builder(requireContext())
@@ -141,11 +144,14 @@ public class JournalFragment extends Fragment {
                     idTiers = (!tiersList.isEmpty() && pos >= 0 && pos < tiersList.size())
                             ? tiersList.get(pos).getId()
                             : DatabaseHelper.CLIENT_COMPTANT_ID;
+                } else if ("AR".equals(typeTiers)) {
+                    // Recettes
+                    j.setEnc(mouv); j.setDec(0);
+                    idTiers = 3; // Autres
                 } else {
-                    // Autres : mt = enc (entrée caisse), mouv = dec (sortie caisse)
-                    j.setEnc(mt);   // entrée caisse
-                    j.setDec(mouv); // sortie caisse
-                    idTiers = 2;    // tiers neutre
+                    // Dépenses
+                    j.setEnc(0); j.setDec(mouv);
+                    idTiers = 3; // Autres
                 }
                 j.setIdTiers(idTiers);
 

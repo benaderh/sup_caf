@@ -34,4 +34,12 @@ public class CategorieDao {
         cv.put(DatabaseHelper.CAT_CAT, nom);
         return dbHelper.getWritableDatabase().insert(DatabaseHelper.T_CATEGORIE, null, cv);
     }
+
+    public int supprimer(long id) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        try (Cursor c = db.rawQuery("SELECT 1 FROM articles WHERE id_c=?", new String[]{String.valueOf(id)})) {
+            if (c.moveToFirst()) return -2; // Utilisé
+        }
+        return db.delete(DatabaseHelper.T_CATEGORIE, DatabaseHelper.CAT_ID + "=?", new String[]{String.valueOf(id)});
+    }
 }

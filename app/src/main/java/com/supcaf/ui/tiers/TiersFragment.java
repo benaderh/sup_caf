@@ -92,8 +92,8 @@ public class TiersFragment extends Fragment {
     }
 
     private void onTiersLongClick(Tiers t) {
-        if (t.getId() == 1 || t.getId() == 2) {
-            Toast.makeText(requireContext(), "Tiers par défaut — non modifiable", Toast.LENGTH_SHORT).show();
+        if (t.getId() <= 3) {
+            Toast.makeText(requireContext(), "Tiers par défaut — non modifiable/supprimable", Toast.LENGTH_SHORT).show();
             return;
         }
         new AlertDialog.Builder(requireContext())
