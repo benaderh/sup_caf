@@ -51,6 +51,10 @@
             android:parentActivityName=".ui.MainActivity" />
 
         <activity
+            android:name=".ui.categories.CategorieSaisieActivity"
+            android:parentActivityName=".ui.MainActivity" />
+
+        <activity
             android:name=".utils.CaptureActivityPortrait"
             android:screenOrientation="portrait"
             android:stateNotNeeded="true"

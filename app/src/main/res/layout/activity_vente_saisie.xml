@@ -19,8 +19,10 @@
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
                 <com.google.android.material.textfield.TextInputLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/date" android:layout_marginEnd="6dp" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_date" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="date" /></com.google.android.material.textfield.TextInputLayout>
-                <com.google.android.material.textfield.TextInputLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="2" android:hint="@string/libelle" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_date" android:layout_width="match_parent" android:layout_height="wrap_content" android:focusable="false" android:clickable="true" /></com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="0.8" android:hint="Heure" android:layout_marginEnd="6dp" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_heure" android:layout_width="match_parent" android:layout_height="wrap_content" android:focusable="false" android:clickable="true" /></com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.5" android:hint="@string/libelle" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_libelle" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" /></com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
@@ -32,6 +34,9 @@
                 <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switch_scan" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mode Scan" />
             </LinearLayout>
 
+            <!-- Catégorie (Filtre Optionnel) -->
+            <Spinner android:id="@+id/spin_categorie_detail" android:layout_width="match_parent" android:layout_height="48dp" android:background="@drawable/spinner_bg" android:layout_marginTop="6dp" android:layout_marginBottom="6dp" />
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/til_code_barre"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -41,14 +46,14 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                 <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_code_barre" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:imeOptions="actionSearch" /></com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Ou libellé article" android:layout_marginTop="6dp" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_art" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textCapWords" /></com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Recherche Code ou Description" android:layout_marginTop="6dp" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                <AutoCompleteTextView android:id="@+id/et_art" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textCapWords" android:completionThreshold="1" /></com.google.android.material.textfield.TextInputLayout>
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="6dp">
                 <com.google.android.material.textfield.TextInputLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/quantite" android:layout_marginEnd="6dp" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_qte" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="1" android:inputType="numberDecimal" /></com.google.android.material.textfield.TextInputLayout>
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_qte" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="1" android:inputType="numberDecimal" android:selectAllOnFocus="true" /></com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/prix_unitaire" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_prix" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberDecimal" /></com.google.android.material.textfield.TextInputLayout>
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_prix" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberDecimal" android:selectAllOnFocus="true" /></com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
             <Button android:id="@+id/btn_ajouter_ligne" android:layout_width="match_parent" android:layout_height="42dp" android:text="@string/valider" android:layout_marginTop="6dp" android:backgroundTint="@color/vente_color" style="@style/Widget.MaterialComponents.Button" />
@@ -58,15 +63,18 @@
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="@color/vente_light" android:padding="12dp" android:layout_marginTop="8dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
                     <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Remise :" android:textSize="13sp" android:textColor="@color/text_secondary" />
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_remise" android:layout_width="100dp" android:layout_height="wrap_content" android:text="0" android:inputType="numberDecimal" android:textAlignment="textEnd" android:gravity="end" />
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_remise" android:layout_width="100dp" android:layout_height="wrap_content" android:text="0" android:inputType="numberDecimal" android:textAlignment="textEnd" android:gravity="end" android:selectAllOnFocus="true" />
                 </LinearLayout>
                 <TextView android:id="@+id/tv_total" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:textColor="@color/text_primary" android:layout_marginTop="6dp" />
-                <TextView android:id="@+id/tv_net" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="16sp" android:textStyle="bold" android:textColor="@color/vente_color" android:layout_marginTop="2dp" />
+                <TextView android:id="@+id/tv_net" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="16sp" android:textStyle="bold" android:textColor="@color/vente_color" android:layout_marginTop="2dp" android:visibility="gone" />
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
                     <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Encaissé :" android:textSize="13sp" android:textColor="@color/text_secondary" />
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_enc" android:layout_width="100dp" android:layout_height="wrap_content" android:text="0" android:inputType="numberDecimal" android:textAlignment="textEnd" android:gravity="end" />
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_enc" android:layout_width="100dp" android:layout_height="wrap_content" android:text="0" android:inputType="numberDecimal" android:textAlignment="textEnd" android:gravity="end" android:selectAllOnFocus="true" />
                 </LinearLayout>
-                <TextView android:id="@+id/tv_reste" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:textStyle="bold" android:layout_marginTop="4dp" />
+                <LinearLayout android:id="@+id/layout_reste" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Reste (Créance) :" android:textSize="13sp" android:textColor="@color/dette_color" android:textStyle="bold" />
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_reste" android:layout_width="100dp" android:layout_height="wrap_content" android:text="0" android:inputType="numberDecimal" android:textAlignment="textEnd" android:gravity="end" android:selectAllOnFocus="true" android:textStyle="bold" android:textColor="@color/dette_color" />
+                </LinearLayout>
             </LinearLayout>
 
             <Button android:id="@+id/btn_enregistrer" android:layout_width="match_parent" android:layout_height="48dp" android:text="@string/enregistrer" android:layout_marginTop="12dp" style="@style/Widget.MaterialComponents.Button" />

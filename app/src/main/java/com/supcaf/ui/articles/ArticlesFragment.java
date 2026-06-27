@@ -68,7 +68,7 @@ public class ArticlesFragment extends Fragment {
             if (isArticleTab) {
                 startActivity(new Intent(requireContext(), ArticleSaisieActivity.class));
             } else {
-                dialogSaisieCategorie(null);
+                startActivity(new Intent(requireContext(), com.supcaf.ui.categories.CategorieSaisieActivity.class));
             }
         });
 
@@ -132,44 +132,11 @@ public class ArticlesFragment extends Fragment {
 
     // --- Catégories ---
     private void onCategorieLongClick(Categorie c) {
-        new AlertDialog.Builder(requireContext())
-            .setTitle(c.getCat())
-            .setItems(new CharSequence[]{"Modifier", "Supprimer"}, (d, which) -> {
-                if (which == 0) dialogSaisieCategorie(c);
-                else {
-                    new AlertDialog.Builder(requireContext())
-                        .setMessage("Supprimer cette catégorie ?")
-                        .setPositiveButton(R.string.oui, (d2, w2) -> {
-                            int res = categorieDao.supprimer(c.getId());
-                            if (res == -2) Toast.makeText(requireContext(), "Impossible : Catégorie utilisée", Toast.LENGTH_SHORT).show();
-                            charger("");
-                        }).setNegativeButton(R.string.non, null).show();
-                }
-            }).show();
+        Intent intent = new Intent(requireContext(), com.supcaf.ui.categories.CategorieSaisieActivity.class);
+        intent.putExtra("categorie_id", c.getId());
+        startActivity(intent);
     }
 
-    private void dialogSaisieCategorie(@Nullable Categorie c) {
-        EditText et = new EditText(requireContext());
-        if (c != null) et.setText(c.getCat());
-        new AlertDialog.Builder(requireContext())
-            .setTitle(c == null ? "Nouvelle catégorie" : "Modifier catégorie")
-            .setView(et)
-            .setPositiveButton(R.string.enregistrer, (d, w) -> {
-                String nom = et.getText().toString().trim();
-                if (!nom.isEmpty()) {
-                    if (c == null) categorieDao.inserer(nom);
-                    else {
-                        // Pas de update dans DAO ? S'il n'y a pas, on gère sinon on ajoute
-                        android.content.ContentValues cv = new android.content.ContentValues();
-                        cv.put(DatabaseHelper.CAT_CAT, nom);
-                        DatabaseHelper.getInstance(requireContext()).getWritableDatabase()
-                            .update(DatabaseHelper.T_CATEGORIE, cv, DatabaseHelper.CAT_ID + "=?", new String[]{String.valueOf(c.getId())});
-                    }
-                    charger("");
-                }
-            })
-            .setNegativeButton(R.string.annuler, null).show();
-    }
 
     static class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.VH> {
         interface OnClick { void on(Article a); }

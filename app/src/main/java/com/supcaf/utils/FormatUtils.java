@@ -36,6 +36,20 @@ public class FormatUtils {
         return SDF_DB.format(new Date());
     }
 
+    public static String[] dateHeureAujourdhuiArray() {
+        Date now = new Date();
+        return new String[] {
+            new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(now),
+            new SimpleDateFormat("HH:mm", Locale.getDefault()).format(now)
+        };
+    }
+
+    public static String montantSansDevise(double val) {
+        // Retourne un format basique, ex: "12500.5" ou "0" sans espaces ni séparateurs complexes
+        if (val == (long) val) return String.format(Locale.US, "%d", (long)val);
+        return String.format(Locale.US, "%.2f", val).replace(".00", "");
+    }
+
     /** Convertit date BD → affichage */
     public static String dateAffichage(String dateBd) {
         try {

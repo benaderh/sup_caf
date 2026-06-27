@@ -81,7 +81,9 @@ public class ArticleSaisieActivity extends AppCompatActivity {
 
         ImageButton btnAddCategorie = findViewById(R.id.btn_add_categorie);
         if (btnAddCategorie != null) {
-            btnAddCategorie.setOnClickListener(v -> dialogSaisieCategorie());
+            btnAddCategorie.setOnClickListener(v -> {
+                startActivity(new Intent(this, com.supcaf.ui.categories.CategorieSaisieActivity.class));
+            });
         }
 
         findViewById(R.id.btn_enregistrer).setOnClickListener(v -> enregistrer());
@@ -114,6 +116,24 @@ public class ArticleSaisieActivity extends AppCompatActivity {
         barcodeLauncher.launch(options);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        long selectedId = -1;
+        if (spinCategorie != null && spinCategorie.getSelectedItemPosition() > 0 && categories != null && !categories.isEmpty()) {
+            selectedId = categories.get(spinCategorie.getSelectedItemPosition() - 1).getId();
+        }
+        chargerCategories();
+        if (selectedId != -1) {
+            for (int i = 0; i < categories.size(); i++) {
+                if (categories.get(i).getId() == selectedId) {
+                    spinCategorie.setSelection(i + 1);
+                    break;
+                }
+            }
+        }
+    }
+
     private void chargerCategories() {
         categories = categorieDao.listerToutes();
         String[] noms = new String[categories.size() + 1];
@@ -123,26 +143,6 @@ public class ArticleSaisieActivity extends AppCompatActivity {
                 android.R.layout.simple_spinner_dropdown_item, noms));
     }
 
-    private void dialogSaisieCategorie() {
-        EditText et = new EditText(this);
-        new AlertDialog.Builder(this)
-            .setTitle("Nouvelle catégorie")
-            .setView(et)
-            .setPositiveButton(R.string.enregistrer, (d, w) -> {
-                String nom = et.getText().toString().trim();
-                if (!nom.isEmpty()) {
-                    long newId = categorieDao.inserer(nom);
-                    chargerCategories();
-                    for (int i = 0; i < categories.size(); i++) {
-                        if (categories.get(i).getId() == newId) {
-                            spinCategorie.setSelection(i + 1);
-                            break;
-                        }
-                    }
-                }
-            })
-            .setNegativeButton(R.string.annuler, null).show();
-    }
 
     private void remplirFormulaire() {
         if (articleEnCours == null) return;

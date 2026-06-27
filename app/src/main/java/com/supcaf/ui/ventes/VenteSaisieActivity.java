@@ -30,9 +30,10 @@ public class VenteSaisieActivity extends AppCompatActivity {
     private ArticleDao articleDao;
     private TiersDao   tiersDao;
 
-    private TextInputEditText etDate, etCodeBarre, etArt, etQte, etPrix, etRemise, etEnc, etLibelle;
-    private Spinner spinClient;
-    private TextView tvTotal, tvNet, tvReste;
+    private TextInputEditText etDate, etHeure, etCodeBarre, etQte, etPrix, etRemise, etEnc, etReste, etLibelle;
+    private AutoCompleteTextView etArt;
+    private Spinner spinClient, spinCategorieDetail;
+    private TextView tvTotal, tvNet;
     private RecyclerView rvLignes;
 
     private List<JourneeDetail> lignes = new ArrayList<>();
@@ -72,7 +73,17 @@ public class VenteSaisieActivity extends AppCompatActivity {
             journeeExistante = journeeDao.parId(jId);
             if (journeeExistante != null) {
                 lignes.addAll(journeeDao.listerDetails(jId));
-                etDate.setText(journeeExistante.getDate());
+                String dateComplete = journeeExistante.getDate();
+                if (dateComplete != null) {
+                    if (dateComplete.contains(" ")) {
+                        String[] parts = dateComplete.split(" ");
+                        etDate.setText(FormatUtils.dateAffichage(parts[0]));
+                        etHeure.setText(parts[1]);
+                    } else {
+                        etDate.setText(FormatUtils.dateAffichage(dateComplete));
+                        etHeure.setText("");
+                    }
+                }
                 etLibelle.setText(journeeExistante.getLibelle() != null ? journeeExistante.getLibelle() : "");
                 etRemise.setText(String.valueOf(journeeExistante.getRemise()));
                 etEnc.setText(String.valueOf(journeeExistante.getEnc()));
@@ -81,12 +92,16 @@ public class VenteSaisieActivity extends AppCompatActivity {
                     if (clients.get(i).getId() == idT) { spinClient.setSelection(i); break; }
             }
         } else {
-            etDate.setText(FormatUtils.dateAujourdhui());
+            String[] dh = FormatUtils.dateHeureAujourdhuiArray();
+            etDate.setText(dh[0]);
+            etHeure.setText(dh[1]);
         }
 
         lignesAdapter = new LignesAdapter(lignes, this::supprimerLigne, this::modifierLigne);
         rvLignes.setLayoutManager(new LinearLayoutManager(this));
         rvLignes.setAdapter(lignesAdapter);
+        
+        chargerArticlesAutocomplete();
         recalculer();
 
         findViewById(R.id.btn_ajouter_ligne).setOnClickListener(v -> ajouterLigne());
@@ -149,18 +164,50 @@ public class VenteSaisieActivity extends AppCompatActivity {
 
     private void lierVues() {
         etDate      = findViewById(R.id.et_date);
+        etHeure     = findViewById(R.id.et_heure);
         etCodeBarre = findViewById(R.id.et_code_barre);
         etArt       = findViewById(R.id.et_art);
         etQte       = findViewById(R.id.et_qte);
         etPrix      = findViewById(R.id.et_prix);
         etRemise    = findViewById(R.id.et_remise);
         etEnc       = findViewById(R.id.et_enc);
+        etReste     = findViewById(R.id.et_reste);
         etLibelle   = findViewById(R.id.et_libelle);
         spinClient  = findViewById(R.id.spin_client);
+        spinCategorieDetail = findViewById(R.id.spin_categorie_detail);
         tvTotal     = findViewById(R.id.tv_total);
         tvNet       = findViewById(R.id.tv_net);
-        tvReste     = findViewById(R.id.tv_reste);
         rvLignes    = findViewById(R.id.rv_lignes);
+
+        etDate.setOnClickListener(v -> showDatePicker());
+        etHeure.setOnClickListener(v -> showTimePicker());
+    }
+
+    private void showDatePicker() {
+        java.util.Calendar c = java.util.Calendar.getInstance();
+        new android.app.DatePickerDialog(this, (view, y, m, d) -> {
+            etDate.setText(String.format("%02d/%02d/%04d", d, m+1, y));
+        }, c.get(java.util.Calendar.YEAR), c.get(java.util.Calendar.MONTH), c.get(java.util.Calendar.DAY_OF_MONTH)).show();
+    }
+
+    private void showTimePicker() {
+        java.util.Calendar c = java.util.Calendar.getInstance();
+        new android.app.TimePickerDialog(this, (view, h, m) -> {
+            etHeure.setText(String.format("%02d:%02d", h, m));
+        }, c.get(java.util.Calendar.HOUR_OF_DAY), c.get(java.util.Calendar.MINUTE), true).show();
+    }
+
+    private void chargerArticlesAutocomplete() {
+        List<Article> articles = articleDao.listerTous();
+        ArrayAdapter<Article> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, articles);
+        etArt.setAdapter(adapter);
+        etArt.setOnItemClickListener((parent, view, position, id) -> {
+            Article a = (Article) parent.getItemAtPosition(position);
+            etCodeBarre.setText(a.getCodeBarre() != null ? a.getCodeBarre() : "");
+            etArt.setText(a.getArt());
+            etPrix.setText(String.valueOf(a.getPv()));
+            etQte.requestFocus();
+        });
     }
 
     private void lancerScannerCodeBarre() {
@@ -178,9 +225,18 @@ public class VenteSaisieActivity extends AppCompatActivity {
     private void chargerClients() {
         clients = tiersDao.listerParType("C");
         String[] noms = new String[clients.size()];
-        for (int i = 0; i < clients.size(); i++) noms[i] = clients.get(i).getTier();
+        int defaultPos = 0;
+        for (int i = 0; i < clients.size(); i++) {
+            noms[i] = clients.get(i).getTier();
+            if (noms[i].equalsIgnoreCase("Comptant")) defaultPos = i;
+        }
         spinClient.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, noms));
+        if (!clients.isEmpty()) spinClient.setSelection(defaultPos);
+        spinClient.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> p, View v, int pos, long id) { recalculer(); }
+            public void onNothingSelected(AdapterView<?> p) {}
+        });
     }
 
     private void ajouterLigne() {
@@ -241,23 +297,48 @@ public class VenteSaisieActivity extends AppCompatActivity {
         Toast.makeText(this, "Ligne prête à être modifiée en haut", Toast.LENGTH_SHORT).show();
     }
 
+    private boolean isRecalculating = false;
+
     private void recalculer() {
-        double total  = 0;
-        for (JourneeDetail d : lignes) total += d.getMontantTotal();
-        double remise = FormatUtils.parseDouble(etRemise.getText() != null ? etRemise.getText().toString() : "0");
-        double net    = total - remise;
-        double enc    = FormatUtils.parseDouble(etEnc.getText() != null ? etEnc.getText().toString() : "0");
-        double reste  = net - enc;
-        tvTotal.setText("Total: " + FormatUtils.montant(total));
-        tvNet.setText("Net: " + FormatUtils.montant(net));
-        tvReste.setText(reste > 0 ? "Créance: " + FormatUtils.montant(reste) : "Encaissé");
-        tvReste.setTextColor(ContextCompat.getColor(this, reste > 0 ? R.color.creance_color : R.color.vente_color));
+        if (isRecalculating) return;
+        isRecalculating = true;
+        try {
+            double total  = 0;
+            for (JourneeDetail d : lignes) total += d.getMontantTotal();
+            
+            boolean isComptant = false;
+            int pos = spinClient.getSelectedItemPosition();
+            if (pos >= 0 && pos < clients.size()) {
+                if (clients.get(pos).getTier().equalsIgnoreCase("Comptant")) isComptant = true;
+            }
+
+            double remise = FormatUtils.parseDouble(etRemise.getText() != null ? etRemise.getText().toString() : "0");
+            double enc    = FormatUtils.parseDouble(etEnc.getText() != null ? etEnc.getText().toString() : "0");
+            
+            if (isComptant) {
+                // Reste = 0 toujours. Remise = Total - Enc
+                findViewById(R.id.layout_reste).setVisibility(View.GONE);
+                etReste.setText("0");
+            } else {
+                findViewById(R.id.layout_reste).setVisibility(View.VISIBLE);
+                double reste = total - remise - enc;
+                etReste.setText(FormatUtils.montantSansDevise(reste));
+            }
+
+            tvTotal.setText("Total: " + FormatUtils.montant(total));
+        } finally {
+            isRecalculating = false;
+        }
     }
 
     private void enregistrer() {
         if (lignes.isEmpty()) { Toast.makeText(this, getString(R.string.aucun_article), Toast.LENGTH_SHORT).show(); return; }
         Journee j = journeeExistante != null ? journeeExistante : new Journee();
-        j.setDate(etDate.getText() != null ? etDate.getText().toString() : FormatUtils.dateAujourdhui());
+        String dateVal = etDate.getText() != null ? etDate.getText().toString().trim() : "";
+        String heureVal = etHeure.getText() != null ? etHeure.getText().toString().trim() : "";
+        dateVal = FormatUtils.dateBd(dateVal); // convertit en yyyy-MM-dd
+        if (!heureVal.isEmpty()) dateVal += " " + heureVal;
+        j.setDate(dateVal.isEmpty() ? FormatUtils.dateAujourdhui() : dateVal);
         j.setType(DatabaseHelper.TYPE_VENTE);
         j.setLibelle(etLibelle.getText() != null ? etLibelle.getText().toString() : "");
         j.setDetails(lignes);

@@ -35,6 +35,35 @@ public class CategorieDao {
         return dbHelper.getWritableDatabase().insert(DatabaseHelper.T_CATEGORIE, null, cv);
     }
 
+    public long inserer(Categorie c) {
+        ContentValues cv = new ContentValues();
+        cv.put(DatabaseHelper.CAT_CAT, c.getCat());
+        cv.put(DatabaseHelper.CAT_OBS, c.getObs());
+        return dbHelper.getWritableDatabase().insert(DatabaseHelper.T_CATEGORIE, null, cv);
+    }
+
+    public int modifier(Categorie c) {
+        ContentValues cv = new ContentValues();
+        cv.put(DatabaseHelper.CAT_CAT, c.getCat());
+        cv.put(DatabaseHelper.CAT_OBS, c.getObs());
+        return dbHelper.getWritableDatabase().update(DatabaseHelper.T_CATEGORIE, cv, DatabaseHelper.CAT_ID + "=?", new String[]{String.valueOf(c.getId())});
+    }
+
+    public Categorie parId(long id) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        try (Cursor c = db.rawQuery("SELECT * FROM categorie WHERE c_id=?", new String[]{String.valueOf(id)})) {
+            if (c.moveToFirst()) {
+                Categorie cat = new Categorie();
+                cat.setId(c.getLong(c.getColumnIndexOrThrow(DatabaseHelper.CAT_ID)));
+                cat.setCat(c.getString(c.getColumnIndexOrThrow(DatabaseHelper.CAT_CAT)));
+                int obsIdx = c.getColumnIndex(DatabaseHelper.CAT_OBS);
+                if (obsIdx >= 0) cat.setObs(c.getString(obsIdx));
+                return cat;
+            }
+        }
+        return null;
+    }
+
     public int supprimer(long id) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         try (Cursor c = db.rawQuery("SELECT 1 FROM articles WHERE id_c=?", new String[]{String.valueOf(id)})) {
