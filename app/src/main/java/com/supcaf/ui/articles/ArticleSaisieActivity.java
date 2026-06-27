@@ -79,6 +79,11 @@ public class ArticleSaisieActivity extends AppCompatActivity {
             tilCodeBarre.setEndIconOnClickListener(v -> lancerScannerCodeBarre());
         }
 
+        ImageButton btnAddCategorie = findViewById(R.id.btn_add_categorie);
+        if (btnAddCategorie != null) {
+            btnAddCategorie.setOnClickListener(v -> dialogSaisieCategorie());
+        }
+
         findViewById(R.id.btn_enregistrer).setOnClickListener(v -> enregistrer());
         findViewById(R.id.btn_annuler).setOnClickListener(v -> finish());
     }
@@ -104,7 +109,8 @@ public class ArticleSaisieActivity extends AppCompatActivity {
         options.setCameraId(0);
         options.setBeepEnabled(true);
         options.setBarcodeImageEnabled(false);
-        options.setOrientationLocked(false);
+        options.setOrientationLocked(true);
+        options.setCaptureActivity(com.supcaf.utils.CaptureActivityPortrait.class);
         barcodeLauncher.launch(options);
     }
 
@@ -115,6 +121,27 @@ public class ArticleSaisieActivity extends AppCompatActivity {
         for (int i = 0; i < categories.size(); i++) noms[i + 1] = categories.get(i).getCat();
         spinCategorie.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, noms));
+    }
+
+    private void dialogSaisieCategorie() {
+        EditText et = new EditText(this);
+        new AlertDialog.Builder(this)
+            .setTitle("Nouvelle catégorie")
+            .setView(et)
+            .setPositiveButton(R.string.enregistrer, (d, w) -> {
+                String nom = et.getText().toString().trim();
+                if (!nom.isEmpty()) {
+                    long newId = categorieDao.inserer(nom);
+                    chargerCategories();
+                    for (int i = 0; i < categories.size(); i++) {
+                        if (categories.get(i).getId() == newId) {
+                            spinCategorie.setSelection(i + 1);
+                            break;
+                        }
+                    }
+                }
+            })
+            .setNegativeButton(R.string.annuler, null).show();
     }
 
     private void remplirFormulaire() {

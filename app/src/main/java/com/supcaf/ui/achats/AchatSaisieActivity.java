@@ -166,7 +166,8 @@ public class AchatSaisieActivity extends AppCompatActivity {
         options.setCameraId(0);
         options.setBeepEnabled(true);
         options.setBarcodeImageEnabled(false);
-        options.setOrientationLocked(false);
+        options.setOrientationLocked(true);
+        options.setCaptureActivity(com.supcaf.utils.CaptureActivityPortrait.class);
         barcodeLauncher.launch(options);
     }
 
