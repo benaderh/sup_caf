@@ -7,10 +7,11 @@ import android.widget.*;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.activity.result.ActivityResultLauncher;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.mlkit.vision.codescanner.GmsBarcodeScanner;
-import com.google.mlkit.vision.codescanner.GmsBarcodeScanning;
+import com.journeyapps.barcodescanner.ScanContract;
+import com.journeyapps.barcodescanner.ScanOptions;
 import com.supcaf.R;
 import com.supcaf.data.DatabaseHelper;
 import com.supcaf.data.dao.ArticleDao;
@@ -29,6 +30,14 @@ public class ArticleSaisieActivity extends AppCompatActivity {
 
     private TextInputEditText etCodeBarre, etArt, etArticle, etUa, etUv, etCoef, etPa, etPv, etQs, etObs;
     private Spinner spinCategorie;
+
+    private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(new ScanContract(), result -> {
+        if(result.getContents() != null) {
+            etCodeBarre.setText(result.getContents());
+        } else {
+            Toast.makeText(this, "Scan annulé", Toast.LENGTH_SHORT).show();
+        }
+    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,25 +98,14 @@ public class ArticleSaisieActivity extends AppCompatActivity {
     }
 
     private void lancerScannerCodeBarre() {
-        GmsBarcodeScanner scanner = GmsBarcodeScanning.getClient(this);
-        scanner.startScan()
-            .addOnSuccessListener(barcode -> {
-                String rawValue = barcode.getRawValue();
-                if (rawValue != null) {
-                    etCodeBarre.setText(rawValue);
-                }
-            })
-            .addOnCanceledListener(() -> {
-                Toast.makeText(this, "Scan annulé", Toast.LENGTH_SHORT).show();
-            })
-            .addOnFailureListener(e -> {
-                String msg = e.getMessage();
-                if (msg != null && msg.contains("Waiting for the barcode UI")) {
-                    Toast.makeText(this, "Module de scan en cours de téléchargement (une seule fois), veuillez réessayer dans un instant...", Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(this, "Erreur scan : " + msg, Toast.LENGTH_SHORT).show();
-                }
-            });
+        ScanOptions options = new ScanOptions();
+        options.setDesiredBarcodeFormats(ScanOptions.ALL_CODE_TYPES);
+        options.setPrompt("Scannez un code barre");
+        options.setCameraId(0);
+        options.setBeepEnabled(true);
+        options.setBarcodeImageEnabled(false);
+        options.setOrientationLocked(false);
+        barcodeLauncher.launch(options);
     }
 
     private void chargerCategories() {
