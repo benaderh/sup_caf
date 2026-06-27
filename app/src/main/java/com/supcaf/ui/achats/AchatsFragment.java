@@ -103,10 +103,10 @@ public class AchatsFragment extends Fragment {
             h.tvMt.setText(FormatUtils.montant(j.getNet()));
             double reste = j.getReste();
             h.tvReste.setText(reste > 0 ? "Dette: " + FormatUtils.montant(reste) : "Réglé");
-            h.tvReste.setTextColor(ContextCompat.getColor(h.itemView.getContext(), 
+            h.tvReste.setTextColor(h.itemView.getContext().getColor(
                 reste > 0 ? R.color.dette_color : R.color.achat_color));
             h.tvBadge.setText("ACHAT");
-            h.tvBadge.setBackgroundColor(ContextCompat.getColor(h.itemView.getContext(), R.color.achat_color));
+            h.tvBadge.setBackgroundColor(h.itemView.getContext().getColor(R.color.achat_color));
             h.itemView.setOnClickListener(v -> onClick.on(j));
             h.itemView.setOnLongClickListener(v -> { onLong.on(j); return true; });
         }

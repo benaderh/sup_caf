@@ -93,10 +93,10 @@ public class VentesFragment extends Fragment {
             h.tvMt.setText(FormatUtils.montant(j.getNet()));
             double reste = j.getReste();
             h.tvReste.setText(reste > 0 ? "Créance: " + FormatUtils.montant(reste) : "Encaissé");
-            h.tvReste.setTextColor(ContextCompat.getColor(h.itemView.getContext(), 
+            h.tvReste.setTextColor(h.itemView.getContext().getColor(
                 reste > 0 ? R.color.creance_color : R.color.vente_color));
             h.tvBadge.setText("VENTE");
-            h.tvBadge.setBackgroundColor(ContextCompat.getColor(h.itemView.getContext(), R.color.vente_color));
+            h.tvBadge.setBackgroundColor(h.itemView.getContext().getColor(R.color.vente_color));
             h.itemView.setOnClickListener(v -> onClick.on(j));
             h.itemView.setOnLongClickListener(v -> { onLong.on(j); return true; });
         }

@@ -1,8 +1,10 @@
 package com.supcaf.ui.tiers;
 
-import androidx.core.content.ContextCompat;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.LayoutInflater;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -83,7 +85,7 @@ public class TiersDetailActivity extends AppCompatActivity {
             h.tvNet.setText("Net: " + FormatUtils.montant(j.getNet()));
             double reste = j.getReste();
             h.tvReste.setText(reste > 0 ? "Reste: " + FormatUtils.montant(reste) : "Réglé");
-            h.tvReste.setTextColor(ContextCompat.getColor(h.itemView.getContext(), 
+            h.tvReste.setTextColor(h.itemView.getContext().getColor(
                 reste > 0 ? R.color.dette_color : R.color.achat_color));
         }
 

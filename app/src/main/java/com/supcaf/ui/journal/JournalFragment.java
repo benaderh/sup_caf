@@ -209,7 +209,7 @@ public class JournalFragment extends Fragment {
                 case "EC": bgColor = R.color.encaissement_color; break;
                 default:   bgColor = R.color.autres_color;
             }
-            h.tvType.setBackgroundColor(ContextCompat.getColor(h.itemView.getContext(), bgColor));
+            h.tvType.setBackgroundColor(h.itemView.getContext().getColor(bgColor));
             h.itemView.setOnLongClickListener(v -> { onLong.on(j); return true; });
         }
 
