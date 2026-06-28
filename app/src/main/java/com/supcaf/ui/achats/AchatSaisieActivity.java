@@ -13,6 +13,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.*;
 import androidx.activity.result.ActivityResultLauncher;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
 import com.supcaf.R;
@@ -72,6 +73,11 @@ public class AchatSaisieActivity extends AppCompatActivity {
         lierVues();
         chargerFournisseurs();
         chargerCategoriesDetail();
+
+        TextInputLayout tilCodeBarre = findViewById(R.id.til_code_barre);
+        if (tilCodeBarre != null) {
+            tilCodeBarre.setEndIconOnClickListener(v -> lancerScannerCodeBarre());
+        }
 
         long jId = getIntent().getLongExtra("journee_id", -1);
         if (jId != -1) {
