@@ -93,7 +93,7 @@
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/et_qte" android:layout_width="match_parent"
                         android:layout_height="wrap_content" android:text="1"
-                        android:inputType="numberDecimal" android:selectAllOnFocus="true" />
+                        android:inputType="numberDecimal" android:imeOptions="actionNext" android:selectAllOnFocus="true" />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
@@ -101,7 +101,7 @@
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/et_prix" android:layout_width="match_parent"
-                        android:layout_height="wrap_content" android:inputType="numberDecimal" android:selectAllOnFocus="true" />
+                        android:layout_height="wrap_content" android:inputType="numberDecimal" android:imeOptions="actionNext" android:selectAllOnFocus="true" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 

@@ -44,6 +44,7 @@ public class VenteSaisieActivity extends AppCompatActivity {
     private List<Categorie> categories;
     private Journee journeeExistante = null;
     private int currentEditingLineIndex = -1;
+    private boolean isEncModifieManuellement = false;
 
     private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(new ScanContract(), result -> {
         if(result.getContents() != null) {
@@ -96,6 +97,7 @@ public class VenteSaisieActivity extends AppCompatActivity {
                     }
                 }
                 etRemise.setText(String.valueOf(journeeExistante.getRemise()));
+                isEncModifieManuellement = true;
                 etEnc.setText(String.valueOf(journeeExistante.getEnc()));
                 long idT = journeeExistante.getIdTiers();
                 for (int i = 0; i < clients.size(); i++)
@@ -118,7 +120,10 @@ public class VenteSaisieActivity extends AppCompatActivity {
 
         etEnc.addTextChangedListener(new android.text.TextWatcher() {
             public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
-            public void onTextChanged(CharSequence s, int st, int b, int c) { recalculer(); }
+            public void onTextChanged(CharSequence s, int st, int b, int c) {
+                if (etEnc.hasFocus()) isEncModifieManuellement = true;
+                recalculer(); 
+            }
             public void afterTextChanged(android.text.Editable s) {}
         });
         etRemise.addTextChangedListener(new android.text.TextWatcher() {
@@ -278,6 +283,12 @@ public class VenteSaisieActivity extends AppCompatActivity {
         etPrix.setText(FormatUtils.montantSansDevise(prix));
         
         etQte.requestFocus();
+        
+        android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.showSoftInput(etQte, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
+        }
+        
         recalculer();
     }
 
@@ -355,17 +366,43 @@ public class VenteSaisieActivity extends AppCompatActivity {
                 // Reste = 0 toujours. Remise = Total - Enc
                 findViewById(R.id.layout_reste).setVisibility(View.GONE);
                 etReste.setText("0");
-                remise = Math.max(0, total - enc);
-                etRemise.setText(FormatUtils.montantSansDevise(remise));
+                if (etEnc.hasFocus()) {
+                    remise = Math.max(0, total - enc);
+                    etRemise.setText(FormatUtils.montantSansDevise(remise));
+                } else if (etRemise.hasFocus()) {
+                    enc = Math.max(0, total - remise);
+                    etEnc.setText(FormatUtils.montantSansDevise(enc));
+                } else {
+                    if (!isEncModifieManuellement) {
+                        enc = Math.max(0, total - remise);
+                        etEnc.setText(FormatUtils.montantSansDevise(enc));
+                    } else {
+                        remise = Math.max(0, total - enc);
+                        etRemise.setText(FormatUtils.montantSansDevise(remise));
+                    }
+                }
             } else {
                 findViewById(R.id.layout_reste).setVisibility(View.VISIBLE);
                 double reste = FormatUtils.parseDouble(etReste.getText() != null ? etReste.getText().toString() : "0");
                 if (etReste.hasFocus()) {
                     remise = Math.max(0, total - enc - reste);
                     etRemise.setText(FormatUtils.montantSansDevise(remise));
-                } else {
+                } else if (etRemise.hasFocus()) {
                     reste = Math.max(0, total - remise - enc);
                     etReste.setText(FormatUtils.montantSansDevise(reste));
+                } else if (etEnc.hasFocus()) {
+                    reste = Math.max(0, total - remise - enc);
+                    etReste.setText(FormatUtils.montantSansDevise(reste));
+                } else {
+                    if (!isEncModifieManuellement) {
+                        enc = Math.max(0, total - remise);
+                        etEnc.setText(FormatUtils.montantSansDevise(enc));
+                        reste = 0;
+                        etReste.setText("0");
+                    } else {
+                        reste = Math.max(0, total - remise - enc);
+                        etReste.setText(FormatUtils.montantSansDevise(reste));
+                    }
                 }
             }
 

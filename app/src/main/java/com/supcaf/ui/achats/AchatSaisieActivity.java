@@ -44,6 +44,7 @@ public class AchatSaisieActivity extends AppCompatActivity {
     private List<Categorie> categories;
     private Journee journeeExistante = null;
     private int currentEditingLineIndex = -1;
+    private boolean isDecModifieManuellement = false;
 
     private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(new ScanContract(), result -> {
         if(result.getContents() != null) {
@@ -108,7 +109,10 @@ public class AchatSaisieActivity extends AppCompatActivity {
         });
         etDec.addTextChangedListener(new android.text.TextWatcher() {
             public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
-            public void onTextChanged(CharSequence s, int st, int b, int c) { recalculer(); }
+            public void onTextChanged(CharSequence s, int st, int b, int c) {
+                if (etDec.hasFocus()) isDecModifieManuellement = true;
+                recalculer(); 
+            }
             public void afterTextChanged(android.text.Editable s) {}
         });
         etReste.addTextChangedListener(new android.text.TextWatcher() {
@@ -262,6 +266,7 @@ public class AchatSaisieActivity extends AppCompatActivity {
             }
         }
         etRemise.setText(String.valueOf(journeeExistante.getRemise()));
+        isDecModifieManuellement = true;
         etDec.setText(String.valueOf(journeeExistante.getDec()));
         long idT = journeeExistante.getIdTiers();
         for (int i = 0; i < fournisseurs.size(); i++) {
@@ -285,6 +290,12 @@ public class AchatSaisieActivity extends AppCompatActivity {
         etPrix.setText(FormatUtils.montantSansDevise(prix));
         
         etQte.requestFocus();
+        
+        android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.showSoftInput(etQte, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
+        }
+        
         recalculer();
     }
 
@@ -366,22 +377,46 @@ public class AchatSaisieActivity extends AppCompatActivity {
             double dec    = FormatUtils.parseDouble(etDec.getText() != null ? etDec.getText().toString() : "0");
             
             if (isComptant) {
-                // Reste = 0 toujours. Remise = Total - Dec (si Dec > 0)
+                // Reste = 0 toujours. Remise = Total - Dec
                 findViewById(R.id.layout_reste).setVisibility(View.GONE);
                 etReste.setText("0");
-                remise = Math.max(0, total - dec);
-                etRemise.setText(FormatUtils.montantSansDevise(remise));
+                if (etDec.hasFocus()) {
+                    remise = Math.max(0, total - dec);
+                    etRemise.setText(FormatUtils.montantSansDevise(remise));
+                } else if (etRemise.hasFocus()) {
+                    dec = Math.max(0, total - remise);
+                    etDec.setText(FormatUtils.montantSansDevise(dec));
+                } else {
+                    if (!isDecModifieManuellement) {
+                        dec = Math.max(0, total - remise);
+                        etDec.setText(FormatUtils.montantSansDevise(dec));
+                    } else {
+                        remise = Math.max(0, total - dec);
+                        etRemise.setText(FormatUtils.montantSansDevise(remise));
+                    }
+                }
             } else {
                 findViewById(R.id.layout_reste).setVisibility(View.VISIBLE);
                 double reste = FormatUtils.parseDouble(etReste.getText() != null ? etReste.getText().toString() : "0");
-                // Si le Reste a été modifié manuellement, on pourrait recalculer Dec.
-                // Pour faire simple, on affiche juste le résultat du calcul.
                 if (etReste.hasFocus()) {
                     remise = Math.max(0, total - dec - reste);
                     etRemise.setText(FormatUtils.montantSansDevise(remise));
-                } else {
+                } else if (etRemise.hasFocus()) {
                     reste = Math.max(0, total - remise - dec);
                     etReste.setText(FormatUtils.montantSansDevise(reste));
+                } else if (etDec.hasFocus()) {
+                    reste = Math.max(0, total - remise - dec);
+                    etReste.setText(FormatUtils.montantSansDevise(reste));
+                } else {
+                    if (!isDecModifieManuellement) {
+                        dec = Math.max(0, total - remise);
+                        etDec.setText(FormatUtils.montantSansDevise(dec));
+                        reste = 0;
+                        etReste.setText("0");
+                    } else {
+                        reste = Math.max(0, total - remise - dec);
+                        etReste.setText(FormatUtils.montantSansDevise(reste));
+                    }
                 }
             }
 
