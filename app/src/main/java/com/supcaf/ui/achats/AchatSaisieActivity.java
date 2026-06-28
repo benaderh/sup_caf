@@ -291,10 +291,12 @@ public class AchatSaisieActivity extends AppCompatActivity {
         
         etQte.requestFocus();
         
-        android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
-        if (imm != null) {
-            imm.showSoftInput(etQte, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
-        }
+        etQte.postDelayed(() -> {
+            android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.showSoftInput(etQte, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
+            }
+        }, 150);
         
         recalculer();
     }
